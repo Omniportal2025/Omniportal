@@ -62,12 +62,20 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({ isOpen, closeMo
     setError(null);
 
     try {
-      // Create auth user with email confirmation
+      // First update the client with the email
+      const { error: emailUpdateError } = await supabase
+        .from('Clients')
+        .update({ Email: email })
+        .eq('id', clientId);
+
+      if (emailUpdateError) throw emailUpdateError;
+
+      // Then create auth user with email confirmation
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: 'https://maybegab0002.github.io/omniportal/login',
+          emailRedirectTo: 'https://omniportal2025.github.io/Omniportal/login',
           data: {
             is_client: true,
             client_name: clientName,
@@ -77,37 +85,49 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({ isOpen, closeMo
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        // If auth creation fails, remove the email from the client
+        await supabase
+          .from('Clients')
+          .update({ Email: null })
+          .eq('id', clientId);
+        throw authError;
+      }
 
       // Get the auth_id from the created user
       const auth_id = data?.user?.id;
       
-      if (!auth_id) throw new Error('Failed to get auth_id');
+      if (!auth_id) {
+        // If no auth_id, remove the email from the client
+        await supabase
+          .from('Clients')
+          .update({ Email: null })
+          .eq('id', clientId);
+        throw new Error('Failed to get auth_id');
+      }
 
       console.log("User created:", data.user);
       
-      // Check if email confirmation is required
-      if (data.user && data.user.identities && data.user.identities.length > 0) {
-        const identity = data.user.identities[0];
-        if (identity.identity_data && identity.identity_data.email_confirmed_at === null) {
-          console.log("Email confirmation required. Check your email inbox.");
-          setSuccess(true);
-          alert("Account created! Please check your email to confirm your account. The email contains login credentials.");
-        } else {
-          console.log("Email already confirmed or confirmation bypassed");
-        }
-      }
-
-      // Update client with Email and auth_id
+      // Update client with auth_id
       const { error: updateError } = await supabase
         .from('Clients')
-        .update({ 
-          Email: email,
-          auth_id: auth_id 
-        })
+        .update({ auth_id: auth_id })
         .eq('id', clientId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        // If update fails, we should delete the auth user to maintain consistency
+        await supabase.auth.admin.deleteUser(auth_id);
+        throw updateError;
+      }
+
+      // Check if email confirmation is required
+      if (data.user?.identities?.[0]?.identity_data?.email_confirmed_at === null) {
+        console.log("Email confirmation required. Check your email inbox.");
+        setSuccess(true);
+        alert("Account created! Please check your email to confirm your account. The email contains login credentials.");
+      } else {
+        console.log("Email already confirmed or confirmation bypassed");
+      }
 
       setSuccess(true);
       setTimeout(() => {
@@ -115,7 +135,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({ isOpen, closeMo
         setSuccess(false);
         setEmail('');
         setPassword('');
-      }, 3000); // Increased from 2000 to 3000ms
+      }, 3000);
     } catch (err: any) {
       console.error("Account creation error:", err);
       setError(err.message);
