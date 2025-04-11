@@ -740,10 +740,19 @@ const PaymentPage: React.FC = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  
   const projects = [
     'all',
     'Living Water Subdivision',
     'Havahills Estate'
+  ];
+
+  const statuses = [
+    { value: 'all', label: 'All Status' },
+    { value: 'Pending', label: 'Pending' },
+    { value: 'Approved', label: 'Approved' },
+    { value: 'Rejected', label: 'Rejected' }
   ];
 
   const handleUploadReceipt = async (payment: Payment, file: File, isAR: boolean = false) => {
@@ -834,9 +843,10 @@ const PaymentPage: React.FC = () => {
     return payments.filter(payment => {
       const matchesSearch = payment.Name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesProject = selectedProject === 'all' || payment.Project === selectedProject;
-      return matchesSearch && matchesProject;
+      const matchesStatus = selectedStatus === 'all' || payment.Status === selectedStatus;
+      return matchesSearch && matchesProject && matchesStatus;
     });
-  }, [payments, searchTerm, selectedProject]);
+  }, [payments, searchTerm, selectedProject, selectedStatus]);
 
 
 
@@ -933,15 +943,27 @@ const PaymentPage: React.FC = () => {
 
           {/* Filters Group */}
           <div className="flex items-center gap-4">
-            <div className="w-48">
+            <div className="flex items-center space-x-4">
               <select
                 value={selectedProject}
                 onChange={(e) => setSelectedProject(e.target.value)}
-                className="w-48 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="block w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
               >
                 {projects.map((project) => (
                   <option key={project} value={project}>
                     {project === 'all' ? 'All Projects' : project}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="block w-40 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+              >
+                {statuses.map((status) => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
                   </option>
                 ))}
               </select>
