@@ -629,9 +629,13 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
                       Month of Payment *
                     </label>
                     <input
-                      type="date"
+                      type="month"
                       value={paymentMonth}
-                      onChange={(e) => setPaymentMonth(e.target.value)}
+                      onChange={(e) => {
+                        const date = new Date(e.target.value);
+                        const monthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+                        setPaymentMonth(monthYear);
+                      }}
                       className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                     />
                   </div>

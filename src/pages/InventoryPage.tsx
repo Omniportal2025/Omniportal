@@ -861,14 +861,20 @@ const InventoryPage: React.FC = () => {
         console.error('Error deleting documents:', documentsError);
       }
 
-      // Delete from Balance table
+      // Update Balance table to clear specific fields
       const { error: balanceError } = await supabase
         .from('Balance')
-        .delete()
+        .update({
+          'Name': '',
+          'Remaining Balance': null,
+          'Amount': null,
+          'Months Paid': '',
+          'MONTHS PAID': null
+        })
         .eq('Name', clientName);
 
       if (balanceError) {
-        console.error('Error deleting balance:', balanceError);
+        console.error('Error updating balance:', balanceError);
       }
 
       // Create an update object with cleared fields and Available status
