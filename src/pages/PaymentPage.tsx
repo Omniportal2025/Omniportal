@@ -411,7 +411,7 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
       const { error: dbError } = await supabase
         .from('Payment')
         .insert([{
-          "receipt_path": filePath,
+          "receipt_path": data.path,
           "Block & Lot": selectedBlockLot,
           "Payment Amount": parseFloat(amount),
           "Penalty Amount": penalty ? parseFloat(penalty) : null,
