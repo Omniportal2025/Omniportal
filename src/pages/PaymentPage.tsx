@@ -264,7 +264,7 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
   const [penalty, setPenalty] = useState<string>('');
   const [referenceNumber, setReferenceNumber] = useState<string>('');
   const [paymentDate, setPaymentDate] = useState<string>('');
-  const [paymentMonth, setPaymentMonth] = useState<string>('');
+  const [paymentMonth, setPaymentMonth] = useState<string>(new Date().toISOString().slice(0, 7));
   const [clients, setClients] = useState<ClientData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -416,7 +416,7 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
           "Payment Amount": parseFloat(amount),
           "Penalty Amount": penalty ? parseFloat(penalty) : null,
           "Date of Payment": paymentDate,
-          "Month of Payment": paymentMonth,
+          "Month of Payment": new Date(paymentMonth).toLocaleString('en-US', { month: 'long', year: 'numeric' }),
           "Name": selectedName,
           "Project": selectedProject,
           "Status": "Pending",
@@ -632,9 +632,8 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
                       type="month"
                       value={paymentMonth}
                       onChange={(e) => {
-                        const date = new Date(e.target.value);
-                        const monthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-                        setPaymentMonth(monthYear);
+                        const selectedValue = e.target.value;
+                        setPaymentMonth(selectedValue);
                       }}
                       className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                     />
