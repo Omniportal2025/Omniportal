@@ -37,6 +37,13 @@ interface UploadPaymentModalProps {
   onUpload: () => void;
 }
 
+interface EditPaymentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  payment: Payment | null;
+  onSave: () => void;
+}
+
 const ViewReceiptModal: React.FC<ViewReceiptModalProps> = ({ isOpen, onClose, receiptUrl, isLoading, payment }) => {
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -730,6 +737,205 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
   );
 };
 
+const EditPaymentModal: React.FC<EditPaymentModalProps> = ({ isOpen, onClose, payment, onSave }) => {
+  const [editedPayment, setEditedPayment] = useState<Payment | null>(null);
+
+  useEffect(() => {
+    setEditedPayment(payment);
+  }, [payment]);
+
+  const handleSave = async () => {
+    if (!editedPayment) return;
+
+    try {
+      const { error } = await supabase
+        .from('Payment')
+        .update({
+          Name: editedPayment.Name,
+          'Block & Lot': editedPayment['Block & Lot'],
+          'Payment Amount': editedPayment['Payment Amount'],
+          'Penalty Amount': editedPayment['Penalty Amount'],
+          'Date of Payment': editedPayment['Date of Payment'],
+          'Month of Payment': editedPayment['Month of Payment'],
+          'Reference Number': editedPayment['Reference Number'],
+          Project: editedPayment.Project,
+          'Payment Type': editedPayment['Payment Type'],
+          'MONTHS PAID': editedPayment['MONTHS PAID']
+        })
+        .eq('id', editedPayment.id);
+
+      if (error) throw error;
+      
+      toast.success('Payment updated successfully');
+      onSave();
+      onClose();
+    } catch (error) {
+      console.error('Error updating payment:', error);
+      toast.error('Failed to update payment');
+    }
+  };
+
+  if (!editedPayment) return null;
+
+  return (
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-10" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black bg-opacity-25" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-xl bg-white shadow-2xl transition-all">
+                <div className="px-6 pt-6 pb-4">
+                  <div className="flex items-start justify-between mb-5">
+                    <div>
+                      <h3 className="text-xl font-semibold flex items-center gap-2">
+                        <span className="bg-[#0A0D50] text-white p-1.5 rounded-lg">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </span>
+                        Edit Payment
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">Update payment details • {payment?.Name}</p>
+                    </div>
+                    <button
+                      onClick={onClose}
+                      className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                    >
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </div>
+                </div>
+                <div className="px-6 pb-6 space-y-4">
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">Name</label>
+                    <input
+                      type="text"
+                      value={editedPayment.Name}
+                      onChange={(e) => setEditedPayment({ ...editedPayment, Name: e.target.value })}
+                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">Block & Lot</label>
+                    <input
+                      type="text"
+                      value={editedPayment['Block & Lot']}
+                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Block & Lot': e.target.value })}
+                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">Payment Amount</label>
+                    <input
+                      type="number"
+                      value={editedPayment['Payment Amount']}
+                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Payment Amount': parseFloat(e.target.value) })}
+                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">Penalty Amount</label>
+                    <input
+                      type="number"
+                      value={editedPayment['Penalty Amount'] || ''}
+                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Penalty Amount': e.target.value ? parseFloat(e.target.value) : null })}
+                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">Date of Payment</label>
+                    <input
+                      type="date"
+                      value={editedPayment['Date of Payment'].split('T')[0]}
+                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Date of Payment': e.target.value })}
+                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">Month of Payment</label>
+                    <input
+                      type="month"
+                      value={editedPayment['Month of Payment']?.split('T')[0].slice(0, 7)}
+                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Month of Payment': e.target.value + '-01' })}
+                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">Reference Number</label>
+                    <input
+                      type="text"
+                      value={editedPayment['Reference Number'] || ''}
+                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Reference Number': e.target.value })}
+                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">Project</label>
+                    <select
+                      value={editedPayment.Project}
+                      onChange={(e) => setEditedPayment({ ...editedPayment, Project: e.target.value })}
+                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                    >
+                      <option value="Living Water Subdivision">Living Water Subdivision</option>
+                      <option value="Havahills Estate">Havahills Estate</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">Months Paid</label>
+                    <input
+                      type="number"
+                      value={editedPayment['MONTHS PAID'] || ''}
+                      onChange={(e) => setEditedPayment({ ...editedPayment, 'MONTHS PAID': e.target.value ? parseInt(e.target.value) : null })}
+                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                    />
+                  </div>
+                </div>
+
+                <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="inline-flex justify-center rounded-lg border border-transparent bg-[#0A0D50] px-4 py-2 text-sm font-medium text-white hover:bg-[#0A0D50]/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+};
+
 const PaymentPage: React.FC = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
@@ -738,6 +944,8 @@ const PaymentPage: React.FC = () => {
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [viewingPayment, setViewingPayment] = useState<Payment | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -1135,19 +1343,35 @@ const PaymentPage: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
 
-                          {payment.Status === "Pending" && (
+                          <div className="flex space-x-2">
+                            {payment.Status === "Pending" && (
+                              <button
+                                onClick={() => handleConfirmPayment(payment)}
+                                className="text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors duration-200"
+                              >
+                                <span className="flex items-center space-x-1">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <span>Confirm</span>
+                                </span>
+                              </button>
+                            )}
                             <button
-                              onClick={() => handleConfirmPayment(payment)}
-                              className="text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors duration-200"
+                              onClick={() => {
+                                setEditingPayment(payment);
+                                setIsEditModalOpen(true);
+                              }}
+                              className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md transition-colors duration-200"
                             >
                               <span className="flex items-center space-x-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
-                                <span>Confirm</span>
+                                <span>Edit</span>
                               </span>
                             </button>
-                          )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -1197,6 +1421,17 @@ const PaymentPage: React.FC = () => {
           isOpen={isUploadModalOpen}
           onClose={() => setIsUploadModalOpen(false)}
           onUpload={fetchAllPayments}
+        />
+
+        {/* Edit Payment Modal */}
+        <EditPaymentModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingPayment(null);
+          }}
+          payment={editingPayment}
+          onSave={fetchAllPayments}
         />
       </div>
     </div>
