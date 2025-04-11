@@ -140,6 +140,13 @@ const AdminDashboardPage = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
+      {/* Backdrop overlay for mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
       <div
         id="sidebar"
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
@@ -148,17 +155,29 @@ const AdminDashboardPage = () => {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-100">
-            <div className="flex items-center justify-center w-16 h-16 bg-white rounded-lg shadow p-2">
-              <img src={logo} alt="HGC Logo" className="w-full h-full object-contain" />
+          <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-16 h-16 bg-white rounded-lg shadow p-2">
+                <img src={logo} alt="HGC Logo" className="w-full h-full object-contain" />
+              </div>
+              
+              <div className="flex flex-col">
+                <span className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+                  Omni Portal
+                </span>
+                <span className="text-xs text-slate-400 font-medium tracking-wide">Admin Dashboard</span>
+              </div>
             </div>
-            
-            <div className="flex flex-col">
-              <span className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                Omni Portal
-              </span>
-              <span className="text-xs text-slate-400 font-medium tracking-wide">Admin Dashboard</span>
-            </div>
+
+            {/* Close button - only visible on mobile */}
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+            >
+              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
           {/* Navigation */}
