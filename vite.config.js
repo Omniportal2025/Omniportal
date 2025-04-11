@@ -6,7 +6,7 @@ var isCustomDomain = process.env.BUILD_MODE === 'CUSTOM_DOMAIN';
 export default defineConfig({
     plugins: [react()],
     // Use root path for custom domain, subpath for GitHub Pages
-    base: isCustomDomain ? '/' : '/omniportal/',
+    base: isCustomDomain ? '/' : '/Omniportal/',
     build: {
         outDir: 'dist',
         assetsDir: 'assets',
