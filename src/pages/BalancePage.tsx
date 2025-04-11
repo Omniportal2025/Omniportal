@@ -44,6 +44,7 @@ const BalancePage: FC = () => {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [sortType, setSortType] = useState<SortType>('name-asc');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   useEffect(() => {
     fetchBalances();
@@ -168,6 +169,11 @@ const BalancePage: FC = () => {
   const handleDeleteConfirm = (balance: BalanceData) => {
     setSelectedBalance(balance);
     setShowDeleteConfirm(true);
+  };
+
+  const handleView = (balance: BalanceData) => {
+    setSelectedBalance(balance);
+    setIsViewModalOpen(true);
   };
 
   const compareBlockLot = (a: BalanceData, b: BalanceData): number => {
@@ -519,7 +525,17 @@ const BalancePage: FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {balance["Terms"]}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium space-x-2">
+                      <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium space-x-2 flex">
+                        <button
+                          onClick={() => handleView(balance)}
+                          className="text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md transition-colors duration-200 flex items-center space-x-2"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          <span>View</span>
+                        </button>
                         {renderActionButtons(balance)}
                       </td>
                     </tr>
@@ -555,6 +571,297 @@ const BalancePage: FC = () => {
             onSave={handleSaveDetails}
             data={selectedBalance}
           />
+        )}
+
+        {/* Statement of Account Modal */}
+        {isViewModalOpen && selectedBalance && (
+          <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full transform transition-all scale-100 opacity-100">
+              <div className="px-6 pt-6 pb-4">
+                <div className="flex items-start justify-between mb-5">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <span className="bg-[#0A0D50] text-white p-1.5 rounded-lg">
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </span>
+                      Statement of Account
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">{selectedBalance.Name} • {selectedBalance.Project}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const printWindow = window.open('', '_blank');
+                        if (printWindow) {
+                          printWindow.document.write(`
+                            <!DOCTYPE html>
+                            <html>
+                              <head>
+                                <title>Statement of Account</title>
+                                <style media="print">
+                                  @page {
+                                    size: auto;
+                                    margin: 0mm;
+                                  }
+                                </style>
+                                <style>
+                                  @media print {
+                                    @page { 
+                                      size: A5;
+                                      margin: 0;
+                                    }
+                                    body { 
+                                      -webkit-print-color-adjust: exact;
+                                      print-color-adjust: exact;
+                                    }
+                                    .print-container {
+                                      border: none !important;
+                                      box-shadow: none !important;
+                                    }
+                                  }
+                                  @page {
+                                    margin: 0;
+                                  }
+                                  @media print {
+                                    html, body {
+                                      height: 100%;
+                                      margin: 0 !important;
+                                      padding: 0 !important;
+                                    }
+                                  }
+                                  body {
+                                    font-family: Arial, sans-serif;
+                                    line-height: 1.3;
+                                    color: #333;
+                                    margin: 0;
+                                    padding: 20px;
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: flex-start;
+                                    min-height: 100vh;
+                                    background: #f5f5f5;
+                                  }
+                                  .print-container {
+                                    background: white;
+                                    width: 400px;
+                                    padding: 20px;
+                                    border: 1px solid #e5e7eb;
+                                    border-radius: 8px;
+                                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                                  }
+                                  .header {
+                                    text-align: center;
+                                    padding: 8px 0;
+                                    margin-bottom: 15px;
+                                    border-bottom: 2px solid #0A0D50;
+                                  }
+                                  .header h2 {
+                                    margin: 0;
+                                    color: #0A0D50;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                  }
+                                  .header p {
+                                    margin: 3px 0 0;
+                                    color: #666;
+                                    font-size: 12px;
+                                  }
+                                  .property-details {
+                                    display: flex;
+                                    justify-content: space-between;
+                                    margin-bottom: 15px;
+                                    padding: 8px;
+                                    background: #f8fafc;
+                                    border-radius: 4px;
+                                    font-size: 12px;
+                                  }
+                                  .badge {
+                                    background: #e0e7ff;
+                                    color: #3730a3;
+                                    padding: 4px 8px;
+                                    border-radius: 4px;
+                                    font-weight: 500;
+                                  }
+                                  .financial-grid {
+                                    display: grid;
+                                    grid-template-columns: 1fr 1fr;
+                                    gap: 10px;
+                                    margin-bottom: 15px;
+                                  }
+                                  .card {
+                                    background: #fff;
+                                    border: 1px solid #e5e7eb;
+                                    padding: 10px;
+                                    border-radius: 6px;
+                                  }
+                                  .card-label {
+                                    font-size: 12px;
+                                    color: #6b7280;
+                                    margin-bottom: 4px;
+                                  }
+                                  .card-value {
+                                    font-size: 16px;
+                                    font-weight: 600;
+                                  }
+                                  .progress-container {
+                                    margin-top: 10px;
+                                  }
+                                  .progress-bar {
+                                    width: 100%;
+                                    height: 8px;
+                                    background: #f3f4f6;
+                                    border-radius: 4px;
+                                    overflow: hidden;
+                                  }
+                                  .progress-fill {
+                                    height: 100%;
+                                    background: #0A0D50;
+                                    border-radius: 4px;
+                                  }
+                                  .green { color: #059669; }
+                                  .red { color: #dc2626; }
+                                </style>
+                              </head>
+                              <body onload="window.print();window.close()">
+                                <div class="print-container">
+                                  <div class="header">
+                                    <h2>Statement of Account</h2>
+                                    <p>${selectedBalance.Name} • ${selectedBalance.Project}</p>
+                                  </div>
+                                
+                                <div class="property-details">
+                                  <div>
+                                    <span class="badge">Block ${selectedBalance.Block}</span>
+                                    <span class="badge" style="margin-left: 8px;">Lot ${selectedBalance.Lot}</span>
+                                  </div>
+                                  <div>${selectedBalance.Terms} Terms</div>
+                                </div>
+
+                                <div class="financial-grid">
+                                  <div class="card">
+                                    <div class="card-label">Total Contract Price</div>
+                                    <div class="card-value">${formatCurrency(selectedBalance.TCP)}</div>
+                                  </div>
+                                  <div class="card">
+                                    <div class="card-label">Amount Paid</div>
+                                    <div class="card-value green">${formatCurrency(selectedBalance.Amount)}</div>
+                                  </div>
+                                </div>
+
+                                <div class="card">
+                                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div class="card-label">Remaining Balance</div>
+                                    <div class="card-value red">${formatCurrency(selectedBalance["Remaining Balance"])}</div>
+                                  </div>
+                                  <div class="progress-container">
+                                    <div class="progress-bar">
+                                      <div class="progress-fill" style="width: ${selectedBalance.Amount && selectedBalance.TCP ? (selectedBalance.Amount / selectedBalance.TCP) * 100 : 0}%"></div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div class="card" style="margin-top: 20px;">
+                                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div class="card-label">Payment Progress</div>
+                                    <div class="card-value">${selectedBalance["MONTHS PAID"]} / ${selectedBalance.Terms} months</div>
+                                  </div>
+                                  <div style="font-size: 12px; color: #6b7280; margin: 4px 0 8px;">Latest Payment: ${selectedBalance["Months Paid"]}</div>
+                                  <div class="progress-bar">
+                                    <div class="progress-fill" style="background: #059669; width: ${selectedBalance["MONTHS PAID"] && selectedBalance.Terms ? (parseInt(selectedBalance["MONTHS PAID"]) / parseInt(selectedBalance.Terms)) * 100 : 0}%"></div>
+                                  </div>
+                                  </div>
+                                </div>
+                              </body>
+                            </html>
+                          `);
+                          printWindow.document.close();
+                        }
+                      }}
+                      className="text-blue-600 hover:text-blue-700 focus:outline-none bg-blue-50 hover:bg-blue-100 rounded-lg p-1.5 transition-colors duration-150"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setIsViewModalOpen(false)}
+                      className="text-gray-400 hover:text-gray-500 focus:outline-none bg-gray-50 hover:bg-gray-100 rounded-lg p-1.5 transition-colors duration-150"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-xl p-4 space-y-4">
+                  {/* Property Details */}
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                        Block {selectedBalance.Block}
+                      </span>
+                      <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                        Lot {selectedBalance.Lot}
+                      </span>
+                    </div>
+                    <span className="text-gray-500">{selectedBalance.Terms} Terms</span>
+                  </div>
+
+                  {/* Financial Summary */}
+                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <div className="bg-white p-3 rounded-lg shadow-sm">
+                      <p className="text-xs font-medium text-gray-500 mb-1">Total Contract Price</p>
+                      <p className="text-base font-semibold text-gray-900">{formatCurrency(selectedBalance.TCP)}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg shadow-sm">
+                      <p className="text-xs font-medium text-gray-500 mb-1">Amount Paid</p>
+                      <p className="text-base font-semibold text-green-600">{formatCurrency(selectedBalance.Amount)}</p>
+                    </div>
+                  </div>
+
+                  {/* Balance and Progress */}
+                  <div className="bg-white p-3 rounded-lg shadow-sm">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-xs font-medium text-gray-500">Remaining Balance</p>
+                      <p className="text-base font-semibold text-red-600">{formatCurrency(selectedBalance["Remaining Balance"])}</p>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-[#0A0D50] rounded-full transition-all duration-500"
+                        style={{
+                          width: `${selectedBalance.Amount && selectedBalance.TCP ? 
+                            (selectedBalance.Amount / selectedBalance.TCP) * 100 : 0}%`
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Payment Progress */}
+                  <div className="bg-white p-3 rounded-lg shadow-sm">
+                    <div className="flex justify-between items-center mb-1">
+                      <p className="text-xs font-medium text-gray-500">Payment Progress</p>
+                      <p className="text-xs font-medium text-gray-900">
+                        {selectedBalance["MONTHS PAID"]} / {selectedBalance.Terms} months
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-2">Latest Payment: {selectedBalance["Months Paid"]}</p>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-green-500 rounded-full transition-all duration-500"
+                        style={{
+                          width: `${selectedBalance["MONTHS PAID"] && selectedBalance.Terms ? 
+                            (parseInt(selectedBalance["MONTHS PAID"]) / parseInt(selectedBalance.Terms)) * 100 : 0}%`
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Delete Confirmation Modal */}

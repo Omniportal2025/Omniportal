@@ -64,6 +64,8 @@ const ReportPage = (): ReactNode => {
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [editingRecord, setEditingRecord] = useState<PaymentRecord | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<PaymentRecord | null>(null);
 
   useEffect(() => {
     fetchPaymentRecords();
@@ -101,6 +103,31 @@ const ReportPage = (): ReactNode => {
   const handleEdit = async (record: PaymentRecord) => {
     setEditingRecord(record);
     setIsEditModalOpen(true);
+  };
+
+  const handleDelete = async (record: PaymentRecord) => {
+    setRecordToDelete(record);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!recordToDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('Payment Record')
+        .delete()
+        .eq('id', recordToDelete.id);
+
+      if (error) throw error;
+
+      // Refresh the payment records
+      await fetchPaymentRecords();
+      setIsDeleteModalOpen(false);
+      setRecordToDelete(null);
+    } catch (error) {
+      console.error('Error deleting record:', error);
+    }
   };
 
   const handleUpdateRecord = async (updatedRecord: PaymentRecord) => {
@@ -915,13 +942,22 @@ const ReportPage = (): ReactNode => {
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                         {record["Payment Type"] || 'cash'}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium flex gap-2">
                         <button
                           onClick={() => handleEdit(record)}
                           className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md transition-colors duration-200 flex items-center space-x-2"
                         >
                           <PencilIcon className="h-4 w-4" />
                           <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(record)}
+                          className="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors duration-200 flex items-center space-x-2"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          <span>Delete</span>
                         </button>
                       </td>
                     </tr>
@@ -932,6 +968,56 @@ const ReportPage = (): ReactNode => {
             </div>
           </div>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {isDeleteModalOpen && recordToDelete && (
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full transform transition-all">
+              <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <h3 className="text-lg font-medium text-gray-900">Delete Payment Record</h3>
+                </div>
+                <button
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="px-6 py-4">
+                <p className="text-sm text-gray-500">
+                  Are you sure you want to delete this payment record? This action cannot be undone.
+                </p>
+                <div className="mt-4 bg-gray-50 p-4 rounded-lg">
+                  <div className="text-sm">
+                    <p><span className="font-medium text-gray-900">Client:</span> {recordToDelete.Name}</p>
+                    <p><span className="font-medium text-gray-900">Amount:</span> {new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(recordToDelete.Amount)}</p>
+                    <p><span className="font-medium text-gray-900">Date:</span> {new Date(recordToDelete.created_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3 rounded-b-lg">
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDelete}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Edit Modal */}
         {isEditModalOpen && editingRecord && (

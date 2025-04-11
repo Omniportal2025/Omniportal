@@ -1,7 +1,8 @@
 import React, { useState, useEffect, Fragment, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { Dialog, Transition } from '@headlessui/react';
+import { Dialog, Transition, Combobox } from '@headlessui/react';
+import { ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import toast from 'react-hot-toast';
 
 interface Payment {
@@ -246,10 +247,17 @@ const ViewReceiptModal: React.FC<ViewReceiptModalProps> = ({ isOpen, onClose, re
   );
 };
 
+interface ClientData {
+  Name: string;
+  Project: string;
+  'Block & Lot': string;
+}
+
 const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose, onUpload }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedName, setSelectedName] = useState('');
+  const [selectedName, setSelectedName] = useState<string>('');
+  const [query, setQuery] = useState('');
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedBlockLot, setSelectedBlockLot] = useState('');
   const [amount, setAmount] = useState<string>('');
@@ -257,6 +265,111 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
   const [referenceNumber, setReferenceNumber] = useState<string>('');
   const [paymentDate, setPaymentDate] = useState<string>('');
   const [paymentMonth, setPaymentMonth] = useState<string>('');
+  const [clients, setClients] = useState<ClientData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        console.log('Modal open status:', isOpen);
+        console.log('Fetching clients from Balance table...');
+        
+        const { data, error } = await supabase
+          .from('Balance')
+          .select('Name, Project, Block, Lot');
+
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
+        
+        console.log('Raw data from Balance table:', data);
+        
+        if (!data || data.length === 0) {
+          console.log('No data received from Balance table');
+          return;
+        }
+
+        // Map the data to ensure we have the correct property names
+        const mappedData = data.map(item => ({
+          Name: item.Name,
+          Project: item.Project,
+          'Block & Lot': `Block ${item.Block} Lot ${item.Lot}`
+        }));
+
+        console.log('Mapped data:', mappedData);
+
+        // Remove duplicates based on all fields
+        const uniqueClients = mappedData.filter((client, index, self) =>
+          index === self.findIndex(c => 
+            c.Name === client.Name && 
+            c.Project === client.Project && 
+            c['Block & Lot'] === client['Block & Lot']
+          )
+        );
+
+        console.log('Unique clients after filtering:', uniqueClients);
+        setClients(uniqueClients);
+      } catch (error) {
+        console.error('Error fetching clients:', error);
+        toast.error('Failed to load client list');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isOpen) {
+      console.log('Modal opened, fetching clients...');
+      fetchClients();
+    }
+  }, [isOpen]);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setFile(null);
+      setSelectedName('');
+      setSelectedProject('');
+      setSelectedBlockLot('');
+      setAmount('');
+      setPenalty('');
+      setReferenceNumber('');
+      setPaymentDate('');
+      setPaymentMonth('');
+    }
+  }, [isOpen]);
+
+  // Derived state for filtered options
+  const availableProjects = useMemo(() => {
+    if (!selectedName) return [];
+    return [...new Set(clients
+      .filter(client => client.Name === selectedName)
+      .map(client => client.Project))];
+  }, [clients, selectedName]);
+
+  const availableBlockLots = useMemo(() => {
+    if (!selectedName || !selectedProject) return [];
+    return [...new Set(clients
+      .filter(client => 
+        client.Name === selectedName && 
+        client.Project === selectedProject)
+      .map(client => client['Block & Lot']))];
+  }, [clients, selectedName, selectedProject]);
+
+  // Get unique client names
+  const uniqueNames = useMemo(() => {
+    if (!clients) return [];
+    const names = Array.from(new Set(clients.map(client => client.Name || ''))).filter(Boolean);
+    return names.sort();
+  }, [clients]);
+
+  const filteredNames = useMemo(() => {
+    if (!uniqueNames) return [];
+    if (!query) return uniqueNames;
+    return uniqueNames.filter((name) =>
+      name.toLowerCase().includes(query.toLowerCase())
+    );
+  }, [uniqueNames, query]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -362,13 +475,57 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Client Name *
                     </label>
-                    <input
-                      type="text"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                      value={selectedName}
-                      onChange={(e) => setSelectedName(e.target.value)}
-                      placeholder="Enter client name..."
-                    />
+                    <div className="relative mt-1">
+                      <Combobox
+                        value={selectedName}
+                        onChange={(value: string) => {
+                          setSelectedName(value);
+                          setSelectedProject('');
+                          setSelectedBlockLot('');
+                        }}
+                      >
+                        <div className="relative">
+                          <div className="flex">
+                            <Combobox.Input
+                              className="w-full rounded-l-lg border border-r-0 border-gray-300 py-2 pl-3 pr-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                              onChange={(event) => setQuery(event.target.value)}
+                              displayValue={(item: string) => item}
+                            />
+                            <Combobox.Button className="inline-flex items-center rounded-r-lg border border-l-0 border-gray-300 bg-white px-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                              <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            </Combobox.Button>
+                          </div>
+                          <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                            {filteredNames.length === 0 ? (
+                              <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
+                                Nothing found.
+                              </div>
+                            ) : (
+                              filteredNames.map((name) => (
+                                <Combobox.Option
+                                  key={name}
+                                  value={name}
+                                  className={({ active }) =>
+                                    `relative cursor-default select-none py-2 pl-3 pr-9 ${
+                                      active ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'
+                                    }`
+                                  }
+                                >
+                                  {({ selected }) => (
+                                    <span className={`block truncate ${selected ? 'font-semibold' : 'font-normal'}`}>
+                                      {name}
+                                    </span>
+                                  )}
+                                </Combobox.Option>
+                              ))
+                            )}
+                          </Combobox.Options>
+                        </div>
+                      </Combobox>
+                    </div>
+                    {isLoading && (
+                      <p className="text-sm text-gray-500 mt-1">Loading clients...</p>
+                    )}
                   </div>
 
                   <div>
@@ -377,13 +534,19 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
                     </label>
                     <select
                       value={selectedProject}
-                      onChange={(e) => setSelectedProject(e.target.value)}
-                      disabled={!selectedName}
+                      onChange={(e) => {
+                        setSelectedProject(e.target.value);
+                        setSelectedBlockLot('');
+                      }}
+                      disabled={!selectedName || isLoading}
                       className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
                       <option value="">Select Project</option>
-                      <option value="Living Water Subdivision">Living Water Subdivision</option>
-                      <option value="Havahills Estate">Havahills Estate</option>
+                      {availableProjects.map((project) => (
+                        <option key={project} value={project}>
+                          {project}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -394,12 +557,15 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
                     <select
                       value={selectedBlockLot}
                       onChange={(e) => setSelectedBlockLot(e.target.value)}
-                      disabled={!selectedProject}
+                      disabled={!selectedProject || isLoading}
                       className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     >
                       <option value="">Select Block & Lot</option>
-                      <option value="Block 1 Lot 1">Block 1 Lot 1</option>
-                      <option value="Block 1 Lot 2">Block 1 Lot 2</option>
+                      {availableBlockLots.map((blockLot) => (
+                        <option key={blockLot} value={blockLot}>
+                          {blockLot}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
