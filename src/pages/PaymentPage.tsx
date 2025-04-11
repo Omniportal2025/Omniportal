@@ -379,21 +379,22 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
   };
 
   const handleUpload = async () => {
+    // Validate required fields
     if (!file || !selectedName || !selectedProject || !selectedBlockLot || !amount || !paymentDate || !paymentMonth || !referenceNumber) {
       toast.error('Please fill in all required fields');
       return;
     }
 
     setIsUploading(true);
+    const loadingToastId = toast.loading('Uploading receipt...');
 
     try {
-
+      // 1. Upload file to storage
       const fileExt = file.name.split('.').pop() || '';
       const timestamp = new Date().getTime();
       const fileName = `${selectedName.trim()}_${timestamp}.${fileExt}`;
       const filePath = `${selectedProject}/${selectedName.trim()}/${fileName}`;
 
-      toast.loading('Uploading receipt...');
       const { error: uploadError, data } = await supabase.storage
         .from('Payment Receipt')
         .upload(filePath, file, { upsert: true });
@@ -407,33 +408,37 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
         throw new Error('No file path returned from upload');
       }
 
-      toast.loading('Saving payment details...');
+      // Update loading message
+      toast.loading('Saving payment details...', { id: loadingToastId });
+
+      // 2. Save to Payment table
       const { error: dbError } = await supabase
         .from('Payment')
-        .insert([{
+        .insert({
           "receipt_path": data.path,
           "Block & Lot": selectedBlockLot,
           "Payment Amount": parseFloat(amount),
           "Penalty Amount": penalty ? parseFloat(penalty) : null,
           "Date of Payment": paymentDate,
-          "Month of Payment": new Date(paymentMonth).toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+          "Month of Payment": paymentMonth + "-01", // Add day to make it a valid date
           "Name": selectedName,
           "Project": selectedProject,
           "Status": "Pending",
           "Reference Number": referenceNumber,
           created_at: new Date().toISOString()
-        }]);
+        });
 
       if (dbError) {
         throw new Error(`Error saving payment information: ${dbError.message}`);
       }
 
-      toast.success('Payment uploaded successfully!');
+      // Success
+      toast.success('Payment uploaded successfully!', { id: loadingToastId });
       onUpload();
       onClose();
     } catch (err: any) {
       console.error('Error uploading payment:', err);
-      toast.error(err.message);
+      toast.error(err.message, { id: loadingToastId });
     } finally {
       setIsUploading(false);
     }
@@ -643,22 +648,46 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Receipt Image *
                     </label>
-                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
-                      <div className="space-y-1 text-center">
-                        <div className="relative">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className="sr-only"
-                          />
-                          <div className="flex text-sm text-gray-600">
-                            <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                              <span>Upload a file</span>
-                            </label>
-                            <p className="pl-1">or drag and drop</p>
-                          </div>
-                          <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    <div 
+                      className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-500 transition-colors cursor-pointer"
+                      onClick={() => document.getElementById('receipt-upload')?.click()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const droppedFile = e.dataTransfer.files[0];
+                        if (droppedFile && droppedFile.type.startsWith('image/')) {
+                          setFile(droppedFile);
+                        }
+                      }}
+                      onDragOver={(e) => e.preventDefault()}
+                    >
+                      <div className="space-y-2 text-center">
+                        <input
+                          id="receipt-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="hidden"
+                        />
+                        <div className="flex flex-col items-center justify-center text-sm text-gray-600">
+                          {file ? (
+                            <>
+                              <p className="text-blue-600 font-medium">{file.name}</p>
+                              <p className="text-xs text-gray-500 mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </>
+                          ) : (
+                            <>
+                              <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                              <div className="flex items-center mt-2">
+                                <span className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                  Upload a file
+                                </span>
+                                <p className="pl-1">or drag and drop</p>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
