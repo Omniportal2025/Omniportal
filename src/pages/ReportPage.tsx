@@ -18,6 +18,7 @@ interface PaymentRecord {
   Penalty: number;
   "Payment Type": string;
   "Payment for the Month of": string;
+  "Due Date": string;
 }
 
 const ReportPage = (): ReactNode => {
@@ -62,6 +63,7 @@ const ReportPage = (): ReactNode => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPaymentType, setSelectedPaymentType] = useState<string>('all');
   const [selectedProject, setSelectedProject] = useState<string>('all');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editingRecord, setEditingRecord] = useState<PaymentRecord | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -73,7 +75,7 @@ const ReportPage = (): ReactNode => {
 
   useEffect(() => {
     filterRecords();
-  }, [paymentRecords, searchTerm, selectedPaymentType, selectedProject]);
+  }, [paymentRecords, searchTerm, selectedPaymentType, selectedProject, selectedDate]);
 
   const filterRecords = () => {
     let filtered = [...paymentRecords];
@@ -95,6 +97,15 @@ const ReportPage = (): ReactNode => {
 
     if (selectedProject !== 'all') {
       filtered = filtered.filter(record => record.Project === selectedProject);
+    }
+
+    if (selectedDate) {
+      filtered = filtered.filter(record => {
+        const recordDate = new Date(record.created_at);
+        return recordDate.getDate() === selectedDate.getDate() &&
+               recordDate.getMonth() === selectedDate.getMonth() &&
+               recordDate.getFullYear() === selectedDate.getFullYear();
+      });
     }
 
     setFilteredRecords(filtered);
@@ -141,7 +152,8 @@ const ReportPage = (): ReactNode => {
           Project: updatedRecord.Project,
           Block: updatedRecord.Block,
           Lot: updatedRecord.Lot,
-          "Payment Type": updatedRecord["Payment Type"]
+          "Payment Type": updatedRecord["Payment Type"],
+          "Due Date": updatedRecord["Due Date"]
         })
         .eq('id', updatedRecord.id);
 
@@ -663,6 +675,27 @@ const ReportPage = (): ReactNode => {
             <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           </div>
           <div className="flex gap-4 items-center">
+            <div className="relative">
+              <div className="react-datepicker-wrapper z-50">
+                <DatePicker
+                  selected={selectedDate}
+                  onChange={(date: Date | null) => setSelectedDate(date)}
+                  placeholderText="Filter by date"
+                  dateFormat="MMMM d, yyyy"
+                  className="w-48 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  isClearable
+                  popperClassName="z-50"
+                />
+              </div>
+              {selectedDate && (
+                <button
+                  onClick={() => setSelectedDate(null)}
+                  className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                </button>
+              )}
+            </div>
             <select
               value={selectedPaymentType}
               onChange={(e) => setSelectedPaymentType(e.target.value)}
@@ -874,6 +907,9 @@ const ReportPage = (): ReactNode => {
                   <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[120px]">
                     Payment Type
                   </th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[120px]">
+                    Due Date
+                  </th>
                   <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[100px]">
                     Actions
                   </th>
@@ -940,7 +976,10 @@ const ReportPage = (): ReactNode => {
                         }).format(record.Penalty) : '₱0.00'}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                        {record["Payment Type"] || 'cash'}
+                        {record["Payment Type"] || 'GCASH'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        {record["Due Date"] || 'N/A'}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium flex gap-2">
                         <button

@@ -283,6 +283,7 @@ const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
   const [referenceNumber, setReferenceNumber] = useState<string>('');
   const [paymentDate, setPaymentDate] = useState<Date | null>(null);
   const [paymentMonth, setPaymentMonth] = useState<Date | null>(null);
+  const [dueDate, setDueDate] = useState<string>('15th');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -492,6 +493,7 @@ const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
             "Penalty Amount": penalty ? parseFloat(penalty) : null,
             "Date of Payment": formatToLocalDate(paymentDate)?.toISOString(),
             "Month of Payment": formatToMonthStart(paymentMonth)?.toISOString(),
+            "Due Date": dueDate, // Add the due date field
             "Name": clientName,
             "Project": selectedProject, // Add the selected project
             "Status": "Pending", // Changed to capital P to match standard status format
@@ -684,6 +686,24 @@ const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
 
                             {/* Date Fields */}
                             <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                                <div className="relative">
+                                  <select
+                                    value={dueDate}
+                                    onChange={(e) => setDueDate(e.target.value)}
+                                    className="block w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 pr-10 text-gray-900 text-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400"
+                                    required
+                                  >
+                                    <option value="15th">15th</option>
+                                    <option value="30th">30th</option>
+                                  </select>
+                                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                                    <ChevronDownIcon className="h-5 w-5" />
+                                  </div>
+                                </div>
+                              </div>
+                              
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Date of Payment</label>
                                 <div className="relative">

@@ -21,6 +21,7 @@ interface Payment {
   "Month of Payment": string;
   "MONTHS PAID"?: number | null;
   "Reference Number"?: string;
+  "Due Date"?: string;
 }
 
 interface ViewReceiptModalProps {
@@ -195,6 +196,10 @@ const ViewReceiptModal: React.FC<ViewReceiptModalProps> = ({ isOpen, onClose, re
                                         <div class="detail-value">${payment['Month of Payment'] || 'N/A'}</div>
                                       </div>
                                       <div class="detail-row">
+                                        <div class="detail-label">Due Date:</div>
+                                        <div class="detail-value">${payment['Due Date'] || 'N/A'}</div>
+                                      </div>
+                                      <div class="detail-row">
                                         <div class="detail-label">Amount:</div>
                                         <div class="detail-value">₱${payment['Payment Amount'].toLocaleString()}</div>
                                       </div>
@@ -272,6 +277,7 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
   const [referenceNumber, setReferenceNumber] = useState<string>('');
   const [paymentDate, setPaymentDate] = useState<string>('');
   const [paymentMonth, setPaymentMonth] = useState<string>(new Date().toISOString().slice(0, 7));
+  const [dueDate, setDueDate] = useState<string>('15th');
   const [clients, setClients] = useState<ClientData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -428,6 +434,7 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
           "Penalty Amount": penalty ? parseFloat(penalty) : null,
           "Date of Payment": paymentDate,
           "Month of Payment": paymentMonth + "-01", // Add day to make it a valid date
+          "Due Date": dueDate,
           "Name": selectedName,
           "Project": selectedProject,
           "Status": "Pending",
@@ -649,6 +656,21 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
                       }}
                       className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Due Date *
+                    </label>
+                    <select
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                      required
+                    >
+                      <option value="15th">15th</option>
+                      <option value="30th">30th</option>
+                    </select>
                   </div>
 
                   <div className="col-span-2">
@@ -1202,6 +1224,7 @@ const PaymentPage: React.FC = () => {
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[10%]">Payment Date</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[15%]">Payment For The Month Of</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[10%]">Due Date</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[10%]">Name</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[10%]">Reference Number</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[10%]">Project</th>
@@ -1222,6 +1245,9 @@ const PaymentPage: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {payment["Month of Payment"] ? new Date(payment["Month of Payment"]).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {payment["Due Date"] || 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {payment.Name}

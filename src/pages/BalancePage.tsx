@@ -17,6 +17,7 @@ interface BalanceData {
   "Months Paid": string;
   "MONTHS PAID": string;
   "Terms": string;
+  "Due Date": string | null;
 }
 
 type SortType = 'name-asc' | 'name-desc' | 'block-lot-asc' | 'block-lot-desc';
@@ -55,7 +56,7 @@ const BalancePage: FC = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('Balance')
-        .select('id, "Project", "Block", "Lot", "Name", "Remaining Balance", "Amount", "TCP", "Months Paid", "MONTHS PAID", "Terms"')
+        .select('id, "Project", "Block", "Lot", "Name", "Remaining Balance", "Amount", "TCP", "Months Paid", "MONTHS PAID", "Terms", "Due Date"')
         .order('"Name"', { ascending: true });
 
       if (error) throw error;
@@ -474,6 +475,9 @@ const BalancePage: FC = () => {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
                     Terms
                   </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                    Due Date
+                  </th>
                   <th scope="col" className="relative px-6 py-3">
                     <span className="sr-only">Actions</span>
                   </th>
@@ -524,6 +528,9 @@ const BalancePage: FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {balance["Terms"]}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {balance["Due Date"] || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium space-x-2 flex">
                         <button

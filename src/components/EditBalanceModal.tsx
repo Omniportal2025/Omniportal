@@ -25,6 +25,7 @@ export interface EditBalanceData {
   "Terms": string;
   "Penalty"?: number | null;
   "Payment Type"?: string;
+  "Due Date"?: string | null;
 }
 
 interface PaymentRecord {
@@ -36,6 +37,7 @@ interface PaymentRecord {
   "Payment Type": string;
   "Penalty"?: number;
   "Payment for the Month of": string;
+  "Due Date"?: string;
 }
 
 const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, onSave, data }) => {
@@ -44,8 +46,9 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
   const [currentRemainingBalance, setCurrentRemainingBalance] = React.useState<number | null>(data?.["Remaining Balance"] || 0);
   const [totalAmount, setTotalAmount] = React.useState<number | null>(data?.Amount || 0);
   const [penalty, setPenalty] = React.useState<number | null>(null);
-  const [paymentType, setPaymentType] = React.useState<string>('cash');
+  const [paymentType, setPaymentType] = React.useState<string>('GCASH');
   const [paymentMonth, setPaymentMonth] = React.useState<string>('');
+  const [dueDate, setDueDate] = React.useState<string>('15th');
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -53,7 +56,7 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
   ];
 
   const paymentTypes = [
-    'CASH',
+    'GCASH',
     'SB-HRM',
     'SB-LWS',
     'SB-HHE',
@@ -101,7 +104,8 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
         ...formData, // Override with any changed fields
         'Remaining Balance': newRemainingBalance,
         'Amount': newTotalAmount,
-        'MONTHS PAID': newMonthsPaid.toString()
+        'MONTHS PAID': newMonthsPaid.toString(),
+        'Due Date': dueDate
       };
 
       // First update the Balance table
@@ -116,6 +120,7 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
         "Lot": data.Lot,
         "Payment Type": paymentType,
         "Payment for the Month of": paymentMonth,
+        "Due Date": dueDate,
       };
 
       // Only add penalty if it has a value
@@ -385,6 +390,22 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
                                 {type}
                               </option>
                             ))}
+                          </select>
+                        </div>
+
+                        <div className="bg-gray-50/50 border border-gray-100 hover:border-gray-200 rounded-lg p-3 transition-all">
+                          <label htmlFor="dueDate" className="block text-sm font-medium text-gray-600 mb-1">
+                            Due Date
+                          </label>
+                          <select
+                            id="dueDate"
+                            value={dueDate}
+                            onChange={(e) => setDueDate(e.target.value)}
+                            className="block w-full rounded-md border-0 bg-white px-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm transition-all"
+                            required
+                          >
+                            <option value="15th">15th</option>
+                            <option value="30th">30th</option>
                           </select>
                         </div>
 

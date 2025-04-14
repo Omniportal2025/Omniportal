@@ -56,7 +56,7 @@ interface HavahillsProperty {
   "Misc Fee": number;
   Vat: number;
   TCP: number;
-  "1st MA": number;
+  "1ST MA": number;
   "1ST MA with Holding Fee": number;
   "2ND TO 48TH MA": number;
   "NEW TERM": string;
@@ -430,7 +430,7 @@ const InventoryPage: React.FC = () => {
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property['Misc Fee'])}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property.Vat)}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property.TCP)}</td>
-                <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property['1st MA'])}</td>
+                <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property['1ST MA'])}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property['1ST MA with Holding Fee'])}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property['2ND TO 48TH MA'])}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property['NEW TERM']}</td>
@@ -756,7 +756,7 @@ const InventoryPage: React.FC = () => {
           "Misc Fee": parseNumericValue(item["Misc Fee"]),
           Vat: parseNumericValue(item.Vat),
           TCP: parseNumericValue(item.TCP),
-          "1st MA": parseNumericValue(item["1st MA"]),
+          "1ST MA": parseNumericValue(item["1ST MA"] || item["1st MA"]),
           "1ST MA with Holding Fee": parseNumericValue(item["1ST MA with Holding Fee"]),
           "2ND TO 48TH MA": parseNumericValue(item["2ND TO 48TH MA"]),
           "NEW TERM": item["NEW TERM"] || '',
@@ -791,27 +791,218 @@ const InventoryPage: React.FC = () => {
 
   // Function to handle confirming property sale
   const confirmSell = async () => {
-    if (!propertyToSell) return;
+    if (!propertyToSell) {
+      console.error('No property selected for sale');
+      return;
+    }
 
     try {
+      console.log('Starting property sale process for:', propertyToSell);
+      console.log('Property type:', isLivingWaterProperty(propertyToSell) ? 'Living Water' : 'Havahills');
+      
       const tableName = selectedProject.id === 'LivingWater' ? 'Living Water Subdivision' : 'Havahills Estate';
-      const updateData: any = {
-        ...propertyToSell,
-        Status: 'Sold',
-        'Date of Reservation': new Date().toISOString().split('T')[0]
-      };
+      console.log('Using table name:', tableName);
+      
+      // Create a clean update data object based on property type
+      let updateData: any = {};
+      
+      // Set the status to Sold for both property types
+      updateData.Status = 'Sold';
+      
+      // Handle Living Water properties
+      if (isLivingWaterProperty(propertyToSell)) {
+        console.log('Processing Living Water property');
+        const lwProperty = propertyToSell as LivingWaterProperty;
+        
+        // Log all field values for debugging
+        console.log('Living Water Property fields:');
+        console.log('Owner:', lwProperty.Owner);
+        console.log('Due Date 15/30:', lwProperty["Due Date 15/30"]);
+        console.log('First Due Month:', lwProperty["First Due Month"]);
+        console.log('Amount:', lwProperty.Amount);
+        console.log('Realty:', lwProperty.Realty);
+        console.log('Sales Director:', lwProperty["Sales Director"]);
+        console.log('Seller Name:', lwProperty["Seller Name"]);
+        console.log('Broker / Realty:', lwProperty["Broker / Realty"]);
+        console.log('Reservation:', lwProperty.Reservation);
+        console.log('Lot Area:', lwProperty["Lot Area"]);
+        console.log('Price per sqm:', lwProperty["Price per sqm"]);
+        console.log('TCP:', lwProperty.TCP);
+        console.log('TSP:', lwProperty.TSP);
+        console.log('MISC FEE:', lwProperty["MISC FEE"]);
+        console.log('Net Contract Price:', lwProperty["Net Contract Price"]);
+        console.log('Monthly Amortization:', lwProperty["Monthly Amortization"]);
+        console.log('1st MA net of Advance Payment:', lwProperty["1st MA net of Advance Payment"]);
+        console.log('2ndto60th MA:', lwProperty["2ndto60th MA"]);
+        
+        // Ensure all fields are included in the update data
+        updateData = {
+          Block: lwProperty.Block,
+          Lot: lwProperty.Lot,
+          "Due Date 15/30": lwProperty["Due Date 15/30"] || '',
+          "First Due Month": lwProperty["First Due Month"] || '',
+          Amount: lwProperty.Amount || 0,
+          Realty: lwProperty.Realty || '',
+          "Sales Director": lwProperty["Sales Director"] || '',
+          Owner: lwProperty.Owner || '',
+          "Date of Reservation": lwProperty["Date of Reservation"] || new Date().toISOString().split('T')[0],
+          "Seller Name": lwProperty["Seller Name"] || '',
+          "Broker / Realty": lwProperty["Broker / Realty"] || '',
+          Reservation: lwProperty.Reservation || 0,
+          "Lot Area": lwProperty["Lot Area"] || 0,
+          "Price per sqm": lwProperty["Price per sqm"] || 0,
+          TCP: lwProperty.TCP || 0,
+          TSP: lwProperty.TSP || 0,
+          "MISC FEE": lwProperty["MISC FEE"] || 0,
+          "Net Contract Price": lwProperty["Net Contract Price"] || 0,
+          "Monthly Amortization": lwProperty["Monthly Amortization"] || 0,
+          "1st MA net of Advance Payment": lwProperty["1st MA net of Advance Payment"] || 0,
+          "2ndto60th MA": lwProperty["2ndto60th MA"] || 0,
+          Year: lwProperty.Year || 0,
+          Status: 'Sold'
+        };
+      } 
+      // Handle Havahills properties
+      else {
+        console.log('Processing Havahills property');
+        const hhProperty = propertyToSell as HavahillsProperty;
+        console.log('Property ID:', hhProperty.id);
+        console.log('Block:', hhProperty.Block);
+        console.log('Lot:', hhProperty.Lot);
+        console.log('Buyers Name:', hhProperty["Buyers Name"]);
+        
+        // Ensure all fields are included in the update data
+        updateData = {
+          Block: hhProperty.Block,
+          Lot: hhProperty.Lot,
+          Due: hhProperty.Due || '',
+          "Date of Reservation": hhProperty["Date of Reservation"] || new Date().toISOString().split('T')[0],
+          "First Due": hhProperty["First Due"] || '',
+          Terms: hhProperty.Terms || '',
+          Amount: hhProperty.Amount || 0,
+          Realty: hhProperty.Realty || '',
+          "Buyers Name": hhProperty["Buyers Name"] || '',
+          "Seller Name": hhProperty["Seller Name"] || '',
+          "Sales Director": hhProperty["Sales Director"] || '',
+          Broker: hhProperty.Broker || '',
+          "Lot Size": hhProperty["Lot Size"] || 0,
+          Price: hhProperty.Price || 0,
+          "Payment Scheme": hhProperty["Payment Scheme"] || '',
+          "Vat Status": hhProperty["Vat Status"] || '',
+          TSP: hhProperty.TSP || 0,
+          "Mode of Payment": hhProperty["Mode of Payment"] || '',
+          Reservation: hhProperty.Reservation || 0,
+          "Comm Price": hhProperty["Comm Price"] || 0,
+          "Misc Fee": hhProperty["Misc Fee"] || 0,
+          Vat: hhProperty.Vat || 0,
+          TCP: hhProperty.TCP || 0,
+          "1ST MA": hhProperty["1ST MA"] || 0,
+          "1ST MA with Holding Fee": hhProperty["1ST MA with Holding Fee"] || 0,
+          "2ND TO 48TH MA": hhProperty["2ND TO 48TH MA"] || 0,
+          "NEW TERM": hhProperty["NEW TERM"] || '',
+          "PASALO PRICE": hhProperty["PASALO PRICE"] || 0,
+          "NEW MA": hhProperty["NEW MA"] || 0,
+          Status: 'Sold'
+        };
+      }
 
-      // Remove id and created_at from update data
-      delete updateData.id;
-      delete updateData.created_at;
+      // Log the update data for debugging
+      console.log('Saving property with data:', updateData);
 
       // Update the property in the database
-      const { error: propertyError } = await supabase
+      console.log(`Updating ${tableName} where id = ${propertyToSell.id}`);
+      const { data, error: propertyError } = await supabase
         .from(tableName)
         .update(updateData)
-        .eq('id', propertyToSell.id);
+        .eq('id', propertyToSell.id)
+        .select();
 
-      if (propertyError) throw propertyError;
+      console.log('Update response:', data);
+      
+      if (propertyError) {
+        console.error('Error updating property:', propertyError);
+        throw propertyError;
+      }
+
+      // Get the client name based on property type
+      const clientName = isLivingWaterProperty(propertyToSell) ? propertyToSell.Owner : propertyToSell["Buyers Name"];
+      
+      if (clientName) {
+        // Save to Clients table - only the name
+        const clientData = {
+          Name: clientName
+        };
+        
+        const { error: clientError } = await supabase
+          .from('Clients')
+          .insert(clientData);
+
+        if (clientError) {
+          console.error('Error saving client:', clientError);
+        }
+        
+        // Find the matching entry in Balance table based on Project, Block and Lot
+        const project = selectedProject.id === 'LivingWater' ? 'Living Water Subdivision' : 'Havahills Estate';
+        const block = propertyToSell.Block;
+        const lot = propertyToSell.Lot;
+        
+        // First, check if there's an existing entry for this property
+        const { data: existingBalance } = await supabase
+          .from('Balance')
+          .select('*')
+          .eq('Project', project)
+          .eq('Block', block)
+          .eq('Lot', lot)
+          .single();
+        
+        if (existingBalance) {
+          // Update the existing entry with the new name
+          const { error: balanceUpdateError } = await supabase
+            .from('Balance')
+            .update({ 
+              Name: clientName,
+              'Remaining Balance': isLivingWaterProperty(propertyToSell) ? 
+                propertyToSell["Net Contract Price"] : 
+                propertyToSell.TCP,
+              'Amount': isLivingWaterProperty(propertyToSell) ? 
+                propertyToSell["Monthly Amortization"] : 
+                propertyToSell["1ST MA"],
+              'Months Paid': '0',
+              'MONTHS PAID': 0
+            })
+            .eq('Project', project)
+            .eq('Block', block)
+            .eq('Lot', lot);
+
+          if (balanceUpdateError) {
+            console.error('Error updating balance:', balanceUpdateError);
+          }
+        } else {
+          // Create a new entry in the Balance table
+          const balanceData = {
+            Name: clientName,
+            'Remaining Balance': isLivingWaterProperty(propertyToSell) ? 
+              propertyToSell["Net Contract Price"] : 
+              propertyToSell.TCP,
+            'Amount': isLivingWaterProperty(propertyToSell) ? 
+              propertyToSell["Monthly Amortization"] : 
+              propertyToSell["1ST MA"],
+            'Months Paid': '0',
+            'MONTHS PAID': 0,
+            'Project': project,
+            'Block': block,
+            'Lot': lot
+          };
+          
+          const { error: balanceError } = await supabase
+            .from('Balance')
+            .insert(balanceData);
+
+          if (balanceError) {
+            console.error('Error saving balance:', balanceError);
+          }
+        }
+      }
 
       // Update local state
       setProperties(prevProperties =>
@@ -956,171 +1147,374 @@ const InventoryPage: React.FC = () => {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900"
-                  >
-                    Sell Property
-                  </Dialog.Title>
-
-                  {propertyToSell && (
-                    <div className="mt-4 grid grid-cols-2 gap-4">
-                      {/* Living Water specific fields */}
-                      {isLivingWaterProperty(propertyToSell) && (
+                <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white shadow-xl transition-all">
+                  <div className={`bg-gradient-to-r ${propertyToSell && isLivingWaterProperty(propertyToSell) ? 'from-[#0A0D50] to-[#1E3A8A]' : 'from-green-800 to-green-600'} px-6 py-5 flex items-center justify-between`}>
+                    <Dialog.Title as="h3" className="text-xl font-semibold text-white flex items-center gap-2">
+                      <ShoppingCartIcon className="h-6 w-6" />
+                      Sell {propertyToSell && isLivingWaterProperty(propertyToSell) ? 'Living Water' : 'Havahills'} Property
+                    </Dialog.Title>
+                    <button
+                      onClick={() => setIsSellModalOpen(false)}
+                      className="text-gray-300 hover:text-white transition-colors rounded-full p-1 hover:bg-white/10"
+                    >
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </div>
+                  <div className="max-h-[80vh] overflow-y-auto">
+                    {propertyToSell && (
+                      <>
+                        {/* Property Summary Banner */}
+                        <div className={`bg-gradient-to-r ${propertyToSell && isLivingWaterProperty(propertyToSell) ? 'from-blue-50 to-blue-100 border-l-4 border-blue-500' : 'from-green-50 to-green-100 border-l-4 border-green-500'} p-5 mb-6`}>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className={`text-lg font-semibold ${propertyToSell && isLivingWaterProperty(propertyToSell) ? 'text-blue-800' : 'text-green-800'} mb-2 flex items-center`}>
+                                <HomeIcon className="h-5 w-5 mr-2" />
+                                Property {propertyToSell.Block}-{propertyToSell.Lot}
+                              </h4>
+                              <div className={`text-sm ${propertyToSell && isLivingWaterProperty(propertyToSell) ? 'text-blue-800' : 'text-green-800'}`}>
+                                {selectedProject.name}
+                              </div>
+                            </div>
+                            <div className={`bg-gradient-to-r ${propertyToSell && isLivingWaterProperty(propertyToSell) ? 'from-blue-500 to-indigo-500 border border-blue-300' : 'from-green-500 to-green-600 border border-green-300'} px-4 py-1.5 rounded-full shadow-md flex items-center space-x-1`}>
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                              </span>
+                              <span className="text-sm font-medium text-white tracking-wide">
+                                {propertyToSell.Status || 'Available'}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mt-4">
+                            
+                            {isLivingWaterProperty(propertyToSell) && (
+                              <>
+                                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 shadow-md border border-blue-200 backdrop-blur-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                                  <div className="text-xs font-medium text-indigo-500 uppercase tracking-wider mb-1 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                                    </svg>
+                                    Lot Area
+                                  </div>
+                                  <div className="font-bold text-gray-800 text-xl flex items-baseline">
+                                    <span>{propertyToSell["Lot Area"]}</span>
+                                    <span className="ml-1 text-sm text-gray-600">sqm</span>
+                                  </div>
+                                </div>
+                                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 shadow-md border border-blue-200 backdrop-blur-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                                  <div className="text-xs font-medium text-indigo-500 uppercase tracking-wider mb-1 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                    </svg>
+                                    Price
+                                  </div>
+                                  <div className="font-bold text-gray-800 text-xl">₱{formatNumber(propertyToSell.TCP || 0)}</div>
+                                </div>
+                              </>
+                            )}
+                            
+                            {!isLivingWaterProperty(propertyToSell) && (
+                              <>
+                                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 shadow-md border border-blue-200 backdrop-blur-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                                  <div className="text-xs font-medium text-indigo-500 uppercase tracking-wider mb-1 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                                    </svg>
+                                    Lot Size
+                                  </div>
+                                  <div className="font-bold text-gray-800 text-xl flex items-baseline">
+                                    <span>{propertyToSell["Lot Size"]}</span>
+                                    <span className="ml-1 text-sm text-gray-600">sqm</span>
+                                  </div>
+                                </div>
+                                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 shadow-md border border-blue-200 backdrop-blur-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                                  <div className="text-xs font-medium text-indigo-500 uppercase tracking-wider mb-1 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                    </svg>
+                                    Price
+                                  </div>
+                                  <div className="font-bold text-gray-800 text-xl">₱{formatNumber(propertyToSell.Price || 0)}</div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Main Content Area */}
+                        <div className="px-6">
+                          {/* Payment Details Section */}
+                          <div className="mb-8">
+                            <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                              </svg>
+                              Payment Details
+                            </h4>
+                            <div className="bg-white p-5 rounded-xl shadow-sm">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                              {/* Living Water specific fields */}
+                              {isLivingWaterProperty(propertyToSell) && (
                         <>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Block</label>
-                            <input
-                              type="text"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell.Block || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, Block: e.target.value } : null)}
-                            />
+
+
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Owner</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.Owner || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, Owner: e.target.value } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Lot</label>
-                            <input
-                              type="text"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell.Lot || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, Lot: e.target.value } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Due Date</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <select
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white appearance-none"
+                                value={propertyToSell["Due Date 15/30"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Due Date 15/30": e.target.value } : null)}
+                              >
+                                <option value="">Select Due Date</option>
+                                <option value="15th">15th</option>
+                                <option value="30th">30th</option>
+                              </select>
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Owner</label>
-                            <input
-                              type="text"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell.Owner || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, Owner: e.target.value } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">First Due Month</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["First Due Month"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "First Due Month": e.target.value } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Due Date 15/30</label>
-                            <input
-                              type="text"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["Due Date 15/30"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Due Date 15/30": e.target.value } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Amount</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.Amount || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, Amount: parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">First Due Month</label>
-                            <input
-                              type="text"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["First Due Month"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "First Due Month": e.target.value } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Broker / Realty</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Broker / Realty"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Broker / Realty": e.target.value } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Amount</label>
-                            <input
-                              type="number"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell.Amount || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, Amount: parseFloat(e.target.value) } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Reservation</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                                  <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.Reservation || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, Reservation: parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Broker / Realty</label>
-                            <input
-                              type="text"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["Broker / Realty"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Broker / Realty": e.target.value } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Lot Area</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Lot Area"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Lot Area": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Reservation</label>
-                            <input
-                              type="number"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell.Reservation || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, Reservation: parseFloat(e.target.value) } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Price per sqm</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 4a1 1 0 000 2 1 1 0 011 1v1H7a1 1 0 000 2h1v3a3 3 0 106 0v-1a1 1 0 10-2 0v1a1 1 0 11-2 0v-3h3a1 1 0 100-2h-3V7a3 3 0 00-3-3z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Price per sqm"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Price per sqm": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Lot Area</label>
-                            <input
-                              type="number"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["Lot Area"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Lot Area": parseFloat(e.target.value) } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">TCP</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.TCP || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, TCP: parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Price per sqm</label>
-                            <input
-                              type="number"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["Price per sqm"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Price per sqm": parseFloat(e.target.value) } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">TSP</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.TSP || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, TSP: parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">TCP</label>
-                            <input
-                              type="number"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell.TCP || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, TCP: parseFloat(e.target.value) } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">MISC FEE</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["MISC FEE"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "MISC FEE": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">TSP</label>
-                            <input
-                              type="number"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell.TSP || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, TSP: parseFloat(e.target.value) } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Net Contract Price</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Net Contract Price"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Net Contract Price": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">MISC FEE</label>
-                            <input
-                              type="number"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["MISC FEE"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "MISC FEE": parseFloat(e.target.value) } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Monthly Amortization</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Monthly Amortization"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Monthly Amortization": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Net Contract Price</label>
-                            <input
-                              type="number"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["Net Contract Price"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Net Contract Price": parseFloat(e.target.value) } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">1st MA net of Advance Payment</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["1st MA net of Advance Payment"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "1st MA net of Advance Payment": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Monthly Amortization</label>
-                            <input
-                              type="number"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["Monthly Amortization"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Monthly Amortization": parseFloat(e.target.value) } : null)}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">1st MA net of Advance Payment</label>
-                            <input
-                              type="number"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["1st MA net of Advance Payment"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "1st MA net of Advance Payment": parseFloat(e.target.value) } : null)}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">2ndto60th MA</label>
-                            <input
-                              type="number"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["2ndto60th MA"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "2ndto60th MA": parseFloat(e.target.value) } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">2ndto60th MA</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["2ndto60th MA"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "2ndto60th MA": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
                           </div>
                         </>
                       )}
@@ -1128,90 +1522,545 @@ const InventoryPage: React.FC = () => {
                       {/* Havahills specific fields */}
                       {!isLivingWaterProperty(propertyToSell) && (
                         <>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Buyer's Name</label>
-                            <input
-                              type="text"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["Buyers Name"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Buyers Name": e.target.value } : null)}
-                            />
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Buyer's Name</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Buyers Name"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Buyers Name": e.target.value } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Due</label>
-                            <input
-                              type="text"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell.Due || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, Due: e.target.value } : null)}
-                            />
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Due</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <select
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white appearance-none"
+                                value={propertyToSell.Due || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, Due: e.target.value } : null)}
+                              >
+                                <option value="">Select Due Date</option>
+                                <option value="15th">15th</option>
+                                <option value="30th">30th</option>
+                              </select>
+                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">First Due</label>
-                            <input
-                              type="text"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["First Due"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "First Due": e.target.value } : null)}
-                            />
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Date of Reservation</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="date"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Date of Reservation"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Date of Reservation": e.target.value } : null)}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700">Mode of Payment</label>
-                            <input
-                              type="text"
-                              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                              value={propertyToSell["Mode of Payment"] || ''}
-                              onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Mode of Payment": e.target.value } : null)}
-                            />
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Terms</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Terms"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Terms": e.target.value } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Amount</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.Amount || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, Amount: parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Realty</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.Realty || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, Realty: e.target.value } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Seller Name</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Seller Name"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Seller Name": e.target.value } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Sales Director</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Sales Director"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Sales Director": e.target.value } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Broker</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.Broker || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, Broker: e.target.value } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Lot Size</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm4.707 3.707a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L8.414 9H10a3 3 0 013 3v1a1 1 0 102 0v-1a5 5 0 00-5-5H8.414l1.293-1.293z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Lot Size"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Lot Size": parseFloat(e.target.value) || 0 } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Mode of Payment</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Mode of Payment"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Mode of Payment": e.target.value } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Price</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.Price || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, Price: parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Payment Scheme</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Payment Scheme"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Payment Scheme": e.target.value } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Vat Status</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Vat Status"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Vat Status": e.target.value } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">TSP</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.TSP || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, TSP: parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">TCP</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.TCP || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, TCP: parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Reservation</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.Reservation || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, Reservation: parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Comm Price</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Comm Price"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Comm Price": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Misc Fee</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["Misc Fee"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "Misc Fee": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">Vat</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell.Vat || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, Vat: parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">1st MA</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["1st MA"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "1st MA": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">1ST MA with Holding Fee</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["1ST MA with Holding Fee"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "1ST MA with Holding Fee": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">2ND TO 48TH MA</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["2ND TO 48TH MA"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "2ND TO 48TH MA": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">NEW TERM</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="text"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["NEW TERM"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "NEW TERM": e.target.value } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">PASALO PRICE</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["PASALO PRICE"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "PASALO PRICE": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="relative">
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-green-800 z-10">NEW MA</label>
+                            <div className="relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                              <input
+                                type="number"
+                                className="block w-full rounded-lg border-2 border-green-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-green-600 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                                value={propertyToSell["NEW MA"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as HavahillsProperty, "NEW MA": parseFloat(e.target.value) } : null)}
+                              />
+                            </div>
                           </div>
                         </>
                       )}
 
                       {/* Common fields */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Realty</label>
-                        <input
-                          type="text"
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          value={propertyToSell.Realty || ''}
-                          onChange={(e) => setPropertyToSell(prev => prev ? { ...prev, Realty: e.target.value } : null)}
-                        />
+                      <div className="relative">
+                        <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Realty</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                            </svg>
+                          </div>
+                          <input
+                            type="text"
+                            className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                            value={propertyToSell.Realty || ''}
+                            onChange={(e) => setPropertyToSell(prev => prev ? { ...prev, Realty: e.target.value } : null)}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Seller Name</label>
-                        <input
-                          type="text"
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          value={propertyToSell["Seller Name"] || ''}
-                          onChange={(e) => setPropertyToSell(prev => prev ? { ...prev, "Seller Name": e.target.value } : null)}
-                        />
+                      <div className="relative">
+                        <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Seller Name</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <input
+                            type="text"
+                            className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                            value={propertyToSell["Seller Name"] || ''}
+                            onChange={(e) => setPropertyToSell(prev => prev ? { ...prev, "Seller Name": e.target.value } : null)}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Sales Director</label>
-                        <input
-                          type="text"
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          value={propertyToSell["Sales Director"] || ''}
-                          onChange={(e) => setPropertyToSell(prev => prev ? { ...prev, "Sales Director": e.target.value } : null)}
-                        />
+                      <div className="relative">
+                        <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Sales Director</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <input
+                            type="text"
+                            className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
+                            value={propertyToSell["Sales Director"] || ''}
+                            onChange={(e) => setPropertyToSell(prev => prev ? { ...prev, "Sales Director": e.target.value } : null)}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  )}
-
-                  <div className="mt-6 flex justify-end space-x-3">
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div className="px-6 py-5 bg-gray-50 flex justify-end space-x-4 border-t">
                     <button
                       type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-green-100 px-4 py-2 text-sm font-medium text-green-900 hover:bg-green-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
-                      onClick={confirmSell}
-                    >
-                      Sell Property
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
+                      className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 transition-colors duration-200 shadow-sm"
                       onClick={() => setIsSellModalOpen(false)}
                     >
                       Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className={`inline-flex justify-center items-center rounded-lg border border-transparent ${propertyToSell && isLivingWaterProperty(propertyToSell) ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus-visible:ring-blue-500' : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 focus-visible:ring-green-500'} px-6 py-3 text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 space-x-2`}
+                      onClick={confirmSell}
+                    >
+                      <span className="relative">
+                        <span className="absolute -inset-1 rounded-full animate-ping opacity-75 bg-white/30"></span>
+                        <ShoppingCartIcon className="h-5 w-5 relative" />
+                      </span>
+                      <span>Complete Sale</span>
                     </button>
                   </div>
                 </Dialog.Panel>
@@ -1263,14 +2112,14 @@ const InventoryPage: React.FC = () => {
                   <div className="mt-4 flex justify-end space-x-3">
                     <button
                       type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
                       onClick={confirmReopen}
                     >
                       Reopen
                     </button>
                     <button
                       type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
+                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
                       onClick={() => setIsReopenModalOpen(false)}
                     >
                       Cancel
@@ -1305,7 +2154,7 @@ const InventoryPage: React.FC = () => {
               placeholder="Search properties..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full rounded-lg border-0 py-2.5 pl-10 pr-10 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 hover:ring-gray-400 transition-all"
+              className="block w-full rounded-lg border-0 py-2.5 pl-10 pr-10 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-200 hover:ring-gray-400 transition-all"
             />
             {searchTerm && (
               <button
@@ -1326,7 +2175,7 @@ const InventoryPage: React.FC = () => {
               <select
                 value={selectedProject.id}
                 onChange={(e) => setSelectedProject(projects.find(p => p.id === e.target.value) || projects[0])}
-                className="block w-full rounded-lg border-0 py-2.5 pl-3 pr-8 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 hover:ring-gray-400 transition-all appearance-none"
+                className="block w-full rounded-lg border-0 py-2.5 pl-3 pr-8 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-200 hover:ring-gray-400 transition-all appearance-none"
               >
                 {projects.map((project) => (
                   <option key={project.id} value={project.id}>
@@ -1348,7 +2197,7 @@ const InventoryPage: React.FC = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="block w-full rounded-lg border-0 py-2.5 pl-3 pr-8 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 hover:ring-gray-400 transition-all appearance-none"
+                className="block w-full rounded-lg border-0 py-2.5 pl-3 pr-8 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-200 hover:ring-gray-400 transition-all appearance-none"
               >
                 {statusOptions.map((option) => (
                   <option key={option.id} value={option.id}>
@@ -1368,7 +2217,7 @@ const InventoryPage: React.FC = () => {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${selectedProject.id === 'LivingWater' ? 'border-blue-500' : 'border-green-500'}`}></div>
         </div>
       ) : (
         <div className="relative mt-4">
