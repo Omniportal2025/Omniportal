@@ -180,7 +180,7 @@ const AdminDashboardPage = () => {
                 <span className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
                   Omni Portal
                 </span>
-                <span className="text-xs text-slate-400 font-medium tracking-wide">Admin Dashboard</span>
+                <span className="text-xs text-slate-400 font-medium tracking-wide">{`Welcome back, ${localStorage.getItem('adminName') || 'Admin'}!`}</span>
               </div>
             </div>
 

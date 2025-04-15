@@ -70,11 +70,18 @@ const LoginPage = () => {
             'hdc.ellainegarcia@gmail.com',
             
           ];
+          const adminNames: { [email: string]: string } = {
+            'rowelhal.hdc@gmail.com': 'Rowelha Langres',
+            'angelap.hdc@gmail.com': 'Angela Pulumbarit',
+            'guest@gmail.com': 'John Doe',
+          };
           if (
             (adminData.Access === true || adminData.Access === 'True' || adminData.Access === 'true') &&
             allowedAdminEmails.includes(email)
           ) {
-            console.log("User is an admin (email found in Admin table, Access is True, and email is allowed), redirecting to admin dashboard");
+            const adminName = adminNames[email] || 'Admin';
+            localStorage.setItem('adminName', adminName);
+            console.log(`User is an admin (${adminName}), redirecting to admin dashboard`);
             navigate('/admin');
             return;
           } else {

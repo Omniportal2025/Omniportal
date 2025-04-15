@@ -269,7 +269,7 @@ const DashboardContent: React.FC = () => {
       {/* Header with welcome message and period selector */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back, Admin! 👋</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Welcome back, {localStorage.getItem('adminName') || 'Admin'}! 👋</h1>
           <p className="text-sm text-gray-600">Here's what's happening with your business today.</p>
         </div>
         <div className="flex items-center space-x-2 bg-white rounded-lg p-1 border border-gray-200 shadow-sm">
