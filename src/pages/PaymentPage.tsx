@@ -968,6 +968,8 @@ const PaymentPage: React.FC = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
+  const [rejectingPayment, setRejectingPayment] = useState<Payment | null>(null);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -1137,9 +1139,27 @@ const PaymentPage: React.FC = () => {
     }
   };
 
+  const handleRejectPayment = async (payment: Payment) => {
+    try {
+      const { error } = await supabase
+        .from('Payment')
+        .update({ Status: 'Rejected' })
+        .eq('id', payment.id);
+
+      if (error) throw error;
+      toast.success('Payment rejected');
+      await fetchAllPayments();
+    } catch (error) {
+      console.error('Error rejecting payment:', error);
+      toast.error('Failed to reject payment');
+    }
+  };
+
+
   return (
-    <div className="min-h-full">
-      <div className="p-6">
+    <>
+      <div className="min-h-full">
+        <div className="p-6">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Payment Records</h1>
           <div className="mt-1 flex items-center gap-4">
@@ -1371,32 +1391,48 @@ const PaymentPage: React.FC = () => {
 
                           <div className="flex space-x-2">
                             {payment.Status === "Pending" && (
-                              <button
-                                onClick={() => handleConfirmPayment(payment)}
-                                className="text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors duration-200"
-                              >
-                                <span className="flex items-center space-x-1">
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  <span>Confirm</span>
-                                </span>
-                              </button>
-                            )}
-                            <button
-                              onClick={() => {
-                                setEditingPayment(payment);
-                                setIsEditModalOpen(true);
-                              }}
-                              className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md transition-colors duration-200"
-                            >
-                              <span className="flex items-center space-x-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                                <span>Edit</span>
-                              </span>
-                            </button>
+  <>
+    <button
+      onClick={() => {
+        setEditingPayment(payment);
+        setIsEditModalOpen(true);
+      }}
+      className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md transition-colors duration-200"
+    >
+      <span className="flex items-center space-x-1">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        <span>Edit</span>
+      </span>
+    </button>
+    <button
+      onClick={() => handleConfirmPayment(payment)}
+      className="text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 px-3 py-1 rounded-md transition-colors duration-200"
+    >
+      <span className="flex items-center space-x-1">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Confirm</span>
+      </span>
+    </button>
+    <button
+      onClick={() => {
+        setRejectingPayment(payment);
+        setIsRejectModalOpen(true);
+      }}
+      className="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors duration-200"
+    >
+      <span className="flex items-center space-x-1">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        <span>Reject</span>
+      </span>
+    </button>
+  </>
+)}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1461,6 +1497,66 @@ const PaymentPage: React.FC = () => {
         />
       </div>
     </div>
+
+    {/* Reject Confirmation Modal */}
+    <Transition appear show={isRejectModalOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={() => setIsRejectModalOpen(false)}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black bg-opacity-25" />
+        </Transition.Child>
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 mb-4">
+                  Confirm Rejection
+                </Dialog.Title>
+                <div className="mb-6 text-gray-700">
+                  Are you sure you want to reject this payment?
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A0D50]"
+                    onClick={() => setIsRejectModalOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600"
+                    onClick={async () => {
+                      if (rejectingPayment) {
+                        await handleRejectPayment(rejectingPayment);
+                        setIsRejectModalOpen(false);
+                        setRejectingPayment(null);
+                      }
+                    }}
+                  >
+                    Yes, Reject
+                  </button>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+    </>
   );
 };
 
