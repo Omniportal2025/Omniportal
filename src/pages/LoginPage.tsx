@@ -68,6 +68,7 @@ const LoginPage = () => {
             'angelap.hdc@gmail.com',
             'rowelhal.hdc@gmail.com',
             'hdc.ellainegarcia@gmail.com',
+            
           ];
           if (
             (adminData.Access === true || adminData.Access === 'True' || adminData.Access === 'true') &&
@@ -78,7 +79,7 @@ const LoginPage = () => {
             return;
           } else {
             // Access is False or email not allowed, block login and show error
-            setError('You do not have access to this portal.');
+            setError('You do not have access to this Dashboard.');
             setIsLoading(false);
             return;
           }
@@ -102,9 +103,9 @@ const LoginPage = () => {
           console.log("User is a client, redirecting to client dashboard");
           navigate('/client-dashboard');
         } else {
-          // Regular user (not admin, not client)
-          console.log("User is a regular user, redirecting to dashboard");
-          navigate('/dashboard');
+          // Not an admin or client
+          setError('You do not have access to this Dashboard.');
+          setIsLoading(false);
         }
       }
     } catch (err: any) {

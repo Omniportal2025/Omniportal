@@ -40,6 +40,15 @@ const AdminDashboardPage = () => {
         return;
       }
 
+      // Allowed admin emails
+      const allowedAdminEmails = [
+        'guest@gmail.com',
+        'angelap.hdc@gmail.com',
+        'rowelhal.hdc@gmail.com',
+        'hdc.ellainegarcia@gmail.com',
+        
+      ];
+
       // Check if user's email exists in Clients table
       const { data: client } = await supabase
         .from('Clients')
@@ -50,6 +59,12 @@ const AdminDashboardPage = () => {
       // If user is found in Clients table, they are not an admin
       if (client) {
         navigate('/dashboard');
+        return;
+      }
+
+      // If user's email is not defined or not in allowed admin emails, redirect to login
+      if (!user.email || !allowedAdminEmails.includes(user.email)) {
+        navigate('/login');
         return;
       }
 
