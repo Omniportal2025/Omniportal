@@ -54,41 +54,57 @@ const LoginPage = () => {
         // Store user email in localStorage
         localStorage.setItem('userEmail', email);
 
-        // Check if user is admin or client
-        const { data: clientData, error: clientError } = await supabase
+        // Enforce admin access only for emails in Admin table
+        // Step 1: Check if user is admin
+        const { data: adminData, error: adminError } = await supabase
+          .from('Admin')
+          .select('Email, Access')
+          .eq('Email', email)
+          .single();
+
+        if (adminData && adminData.Email === email) {
+          const allowedAdminEmails = [
+            'guest@gmail.com',
+            'angelap.hdc@gmail.com',
+            'rowelhal.hdc@gmail.com',
+            'hdc.ellainegarcia@gmail.com',
+          ];
+          if (
+            (adminData.Access === true || adminData.Access === 'True' || adminData.Access === 'true') &&
+            allowedAdminEmails.includes(email)
+          ) {
+            console.log("User is an admin (email found in Admin table, Access is True, and email is allowed), redirecting to admin dashboard");
+            navigate('/admin');
+            return;
+          } else {
+            // Access is False or email not allowed, block login and show error
+            setError('You do not have access to this portal.');
+            setIsLoading(false);
+            return;
+          }
+        } else if (adminError && adminError.code !== 'PGRST116') { // PGRST116: No rows found
+          // Log unexpected errors (not just 'not found')
+          console.error("Error checking Admin table:", adminError);
+          setError('An error occurred while verifying admin access.');
+          setIsLoading(false);
+          return;
+        }
+
+        // Step 2: Check if user is a client
+        const { data: clientData } = await supabase
           .from('Clients')
           .select('id')
           .eq('auth_id', data.user.id)
           .single();
-          
-        if (clientError) {
-          console.log("Not a client, checking if admin:", clientError);
-        }
-          
+
         if (clientData) {
           // This is a client user
           console.log("User is a client, redirecting to client dashboard");
           navigate('/client-dashboard');
         } else {
-          // Check if user is admin by checking for display_name
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('display_name')
-            .eq('id', data.user.id)
-            .single();
-
-          if (profileError) {
-            console.log("Profile error:", profileError);
-          }
-
-          // If no display name, route to admin dashboard
-          if (!profile?.display_name) {
-            console.log("User is an admin, redirecting to admin dashboard");
-            navigate('/admin');
-          } else {
-            console.log("User is a regular user, redirecting to dashboard");
-            navigate('/dashboard');
-          }
+          // Regular user (not admin, not client)
+          console.log("User is a regular user, redirecting to dashboard");
+          navigate('/dashboard');
         }
       }
     } catch (err: any) {
