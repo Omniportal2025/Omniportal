@@ -133,7 +133,8 @@ const BalancePage: FC = () => {
           Amount: updatedData.Amount,
           "Remaining Balance": updatedData["Remaining Balance"],
           "Months Paid": updatedData["Months Paid"],
-          "MONTHS PAID": updatedData["MONTHS PAID"]
+          "MONTHS PAID": updatedData["MONTHS PAID"],
+          "Due Date": updatedData["Due Date"]
         })
         .eq('id', updatedData.id);
 

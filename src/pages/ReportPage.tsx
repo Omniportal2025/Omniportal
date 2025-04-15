@@ -593,6 +593,7 @@ const ReportPage = (): ReactNode => {
                 <th>Amount</th>
                 <th>Penalty</th>
                 <th>Payment Type</th>
+                <th>Due Date</th>
               </tr>
             </thead>
             <tbody>
@@ -606,6 +607,7 @@ const ReportPage = (): ReactNode => {
                   <td>₱${record.Amount.toLocaleString()}</td>
                   <td>${record.Penalty ? `₱${record.Penalty.toLocaleString()}` : 'N/A'}</td>
                   <td>${record["Payment Type"]}</td>
+                  <td>${record["Due Date"] || 'N/A'}</td>
                 </tr>
               `).join('')}
             </tbody>

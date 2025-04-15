@@ -48,7 +48,7 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
   const [penalty, setPenalty] = React.useState<number | null>(null);
   const [paymentType, setPaymentType] = React.useState<string>('GCASH');
   const [paymentMonth, setPaymentMonth] = React.useState<string>('');
-  const [dueDate, setDueDate] = React.useState<string>('15th');
+  const [dueDate, setDueDate] = React.useState<string>(data?.["Due Date"] ? data["Due Date"]!.slice(0, 10) : '');
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',

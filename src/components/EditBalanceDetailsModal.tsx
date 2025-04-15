@@ -21,6 +21,7 @@ export interface EditBalanceDetailsData {
   "Months Paid": string;
   "MONTHS PAID": string;
   "Terms": string;
+  "Due Date"?: string | null;
 }
 
 const EditBalanceDetailsModal: React.FC<EditBalanceDetailsModalProps> = ({
@@ -246,39 +247,60 @@ const EditBalanceDetailsModal: React.FC<EditBalanceDetailsModalProps> = ({
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-gray-50/50 border border-gray-100 hover:border-gray-200 rounded-lg p-3 transition-all">
-                          <label htmlFor="terms" className="block text-sm font-medium text-gray-600 mb-1">
-                            Terms
-                          </label>
-                          <input
-                            type="text"
-                            id="terms"
-                            value={formData?.Terms || ''}
-                            onChange={(e) => handleInputChange('Terms', e.target.value)}
-                            className="block w-full rounded-md border-0 bg-white px-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm transition-all"
-                            placeholder="Enter terms"
-                          />
-                        </div>
+  <div className="bg-gray-50/50 border border-gray-100 hover:border-gray-200 rounded-lg p-3 transition-all">
+    <label htmlFor="terms" className="block text-sm font-medium text-gray-600 mb-1">
+      Terms
+    </label>
+    <input
+      type="text"
+      id="terms"
+      value={formData?.Terms || ''}
+      onChange={(e) => handleInputChange('Terms', e.target.value)}
+      className="block w-full rounded-md border-0 bg-white px-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm transition-all"
+      placeholder="Enter terms"
+    />
+  </div>
 
-                        <div className="bg-gray-50/50 border border-gray-100 hover:border-gray-200 rounded-lg p-3 transition-all">
-                          <label htmlFor="remainingBalance" className="block text-sm font-medium text-gray-600 mb-1">
-                            Remaining Balance
-                          </label>
-                          <div className="relative">
-                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                              <span className="text-gray-500 sm:text-sm">₱</span>
-                            </div>
-                            <input
-                              type="number"
-                              id="remainingBalance"
-                              value={formData?.["Remaining Balance"] || ''}
-                              onChange={(e) => handleInputChange('Remaining Balance', parseFloat(e.target.value) || null)}
-                              className="block w-full rounded-md border-0 bg-white pl-7 pr-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm transition-all"
-                              placeholder="0.00"
-                            />
-                          </div>
-                        </div>
-                      </div>
+  {/* Due Date Field */}
+  <div className="bg-gray-50/50 border border-gray-100 hover:border-gray-200 rounded-lg p-3 transition-all">
+    <label htmlFor="dueDate" className="block text-sm font-medium text-gray-600 mb-1">
+      Due Date
+    </label>
+    <select
+  id="dueDate"
+  value={formData?.["Due Date"] || ''}
+  onChange={(e) => {
+    const value = e.target.value;
+    setFormData(prev => prev ? { ...prev, ["Due Date"]: value } : null);
+  }}
+  className="block w-full rounded-md border-0 bg-white px-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm transition-all"
+  required
+>
+  <option value="">Select Due Date</option>
+  <option value="15th">15th</option>
+  <option value="30th">30th</option>
+</select>
+  </div>
+
+  <div className="bg-gray-50/50 border border-gray-100 hover:border-gray-200 rounded-lg p-3 transition-all">
+    <label htmlFor="remainingBalance" className="block text-sm font-medium text-gray-600 mb-1">
+      Remaining Balance
+    </label>
+    <div className="relative">
+      <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+        <span className="text-gray-500 sm:text-sm">₱</span>
+      </div>
+      <input
+        type="number"
+        id="remainingBalance"
+        value={formData?.["Remaining Balance"] || ''}
+        onChange={(e) => handleInputChange('Remaining Balance', parseFloat(e.target.value) || null)}
+        className="block w-full rounded-md border-0 bg-white pl-7 pr-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm transition-all"
+        placeholder="0.00"
+      />
+    </div>
+  </div>
+</div>
                     </div>
                   </div>
                 </div>
