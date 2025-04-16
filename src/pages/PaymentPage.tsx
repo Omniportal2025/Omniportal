@@ -1,4 +1,6 @@
 import React, { useState, useEffect, Fragment, useMemo } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { supabase } from '../lib/supabaseClient';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Dialog, Transition, Combobox } from '@headlessui/react';
@@ -973,6 +975,7 @@ const PaymentPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   const projects = [
     'all',
@@ -1076,9 +1079,15 @@ const PaymentPage: React.FC = () => {
       const matchesSearch = payment.Name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesProject = selectedProject === 'all' || payment.Project === selectedProject;
       const matchesStatus = selectedStatus === 'all' || payment.Status === selectedStatus;
-      return matchesSearch && matchesProject && matchesStatus;
+      const matchesDate = !selectedDate || (payment["Date of Payment"] && (() => {
+        const recordDate = new Date(payment["Date of Payment"]);
+        return recordDate.getDate() === selectedDate.getDate() &&
+               recordDate.getMonth() === selectedDate.getMonth() &&
+               recordDate.getFullYear() === selectedDate.getFullYear();
+      })());
+      return matchesSearch && matchesProject && matchesStatus && matchesDate;
     });
-  }, [payments, searchTerm, selectedProject, selectedStatus]);
+  }, [payments, searchTerm, selectedProject, selectedStatus, selectedDate]);
 
 
 
@@ -1171,7 +1180,7 @@ const PaymentPage: React.FC = () => {
         </div>
 
         {/* Search and Filters Section */}
-        <div className="mb-6 flex flex-wrap justify-between items-center">
+        <div className="mb-6 flex flex-wrap justify-between items-center border-b border-gray-300 pb-4">
           {/* Search Bar */}
           <div className="w-72">
             <div className="relative">
@@ -1194,6 +1203,15 @@ const PaymentPage: React.FC = () => {
           {/* Filters Group */}
           <div className="flex items-center gap-4">
             <div className="flex items-center space-x-4">
+            <div>
+              <DatePicker
+                selected={selectedDate}
+                onChange={date => setSelectedDate(date)}
+                placeholderText="Filter by Payment Date"
+                className="block w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                isClearable
+              />
+            </div>
               <select
                 value={selectedProject}
                 onChange={(e) => setSelectedProject(e.target.value)}
