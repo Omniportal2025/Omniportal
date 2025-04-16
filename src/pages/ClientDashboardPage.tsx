@@ -379,7 +379,7 @@ const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
     setIsProcessing(true);
 
     // Validate file type (only PNG and JPG)
-    if (!file.type.match(/^image\/(png|jpeg|jpg)$/)) {
+    if (!file.type.match(/^image\/(png|jpeg)$/)) {
       setPreviewError('Only PNG and JPG files are allowed');
       setIsProcessing(false);
       return;
@@ -584,6 +584,27 @@ const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
 
                     <div className="px-6 py-6 sm:px-8 sm:py-8">
                       <form onSubmit={handleSubmit} className="space-y-6">
+  {/* Receipt Upload Field */}
+  <div className="mb-6">
+    <label className="block text-sm font-medium text-gray-700 mb-2">Upload Receipt (PNG or JPG only)</label>
+    <input
+      type="file"
+      accept="image/png, image/jpeg"
+      onChange={e => {
+        const file = e.target.files && e.target.files[0];
+        if (file) processFile(file);
+      }}
+      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-blue-500"
+      required
+    />
+    <p className="mt-1 text-xs text-gray-500">Only .png or .jpg files are allowed. Max size: 10MB.</p>
+    {previewError && <div className="text-red-600 text-xs mt-1">{previewError}</div>}
+    {previewUrl && (
+      <div className="mt-2">
+        <img src={previewUrl} alt="Receipt Preview" className="max-h-40 rounded border" />
+      </div>
+    )}
+  </div>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                           {/* Left Column */}
                           <div className="space-y-6">

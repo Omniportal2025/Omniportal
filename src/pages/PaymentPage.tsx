@@ -7,6 +7,24 @@ import { Dialog, Transition, Combobox } from '@headlessui/react';
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import toast from 'react-hot-toast';
 
+// Helper to format 'YYYY-MM-DD' or 'YYYY-MM' to 'Month YYYY' (e.g., 'April 2025')
+function formatMonthYear(dateStr?: string): string {
+  if (!dateStr) return 'N/A';
+  // Accepts 'YYYY-MM-DD' or 'YYYY-MM' or 'YYYY/MM/DD'
+  let d = dateStr;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) d = d.slice(0, 7); // 'YYYY-MM'
+  if (/^\d{4}-\d{2}$/.test(d)) {
+    const [year, month] = d.split('-');
+    const monthNum = parseInt(month, 10);
+    if (monthNum >= 1 && monthNum <= 12) {
+      const date = new Date(Number(year), monthNum - 1);
+      return date.toLocaleString('default', { month: 'long', year: 'numeric' });
+    }
+  }
+  return 'N/A';
+}
+
+
 interface Payment {
   id: number;
   Name: string;
@@ -195,7 +213,7 @@ const ViewReceiptModal: React.FC<ViewReceiptModalProps> = ({ isOpen, onClose, re
                                       </div>
                                       <div class="detail-row">
                                         <div class="detail-label">Payment For The Month Of:</div>
-                                        <div class="detail-value">${payment['Month of Payment'] || 'N/A'}</div>
+                                        <div class="detail-value">${formatMonthYear(payment['Month of Payment'])}</div>
                                       </div>
                                       <div class="detail-row">
                                         <div class="detail-label">Due Date:</div>

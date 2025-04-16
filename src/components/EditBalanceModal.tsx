@@ -48,7 +48,7 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
   const [penalty, setPenalty] = React.useState<number | null>(null);
   const [paymentType, setPaymentType] = React.useState<string>('GCASH');
   const [paymentMonth, setPaymentMonth] = React.useState<string>('');
-  const [dueDate, setDueDate] = React.useState<string>(data?.["Due Date"] ? data["Due Date"]!.slice(0, 10) : '');
+  const [dueDate, setDueDate] = React.useState<string>(data?.["Due Date"] === "15th" || data?.["Due Date"] === "30th" ? data["Due Date"] : "30th");
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -76,6 +76,7 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
       setTotalAmount(data.Amount);
       setPenalty(null);
       setPaymentType('cash');
+      setDueDate(data?.["Due Date"] === "15th" || data?.["Due Date"] === "30th" ? data["Due Date"] : "30th");
     }
   }, [data]);
 
@@ -85,6 +86,7 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
     e.preventDefault();
     if (!formData || !data) return;
 
+    console.log("Due Date to be saved:", dueDate); // DEBUG
     try {
       setLoading(true);
       // Get the current values
