@@ -267,6 +267,16 @@ interface PaymentReceiptModalProps {
 }
 
 // Payment Receipt Modal Component
+// Helper to sanitize storage keys (removes spaces, special chars, diacritics)
+function sanitizeKey(str: string) {
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9-_]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
 const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({ 
   isOpen, 
   closeModal, 
@@ -461,15 +471,14 @@ const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
         throw new Error('Please fill in all required fields');
       }
 
-      // Create folder path for client's receipts
+      // Create folder path for client's receipts (sanitize all parts)
       const fileExt = file.name.split('.').pop();
-      // Format the date as YYYY-MM-DD
       const paymentDateFormatted = paymentDate ? new Date(paymentDate).toISOString().split('T')[0] : '';
-      // Create standardized filename: YYYY-MM-DD_BlockX-LotY.ext
-      const blockLotFormatted = selectedBlockLot?.replace(/\s+/g, '').replace('Block', '').replace('Lot', '-') || '';
-      const fileName = `${paymentDateFormatted}_${blockLotFormatted}.${fileExt}`;
-      // Create path with client folder
-      const filePath = `${clientName}/${fileName}`;
+      const safeProject = sanitizeKey(selectedProject);
+      const safeClientName = sanitizeKey(clientName);
+      const safeBlockLot = sanitizeKey(selectedBlockLot || '');
+      const fileName = `${paymentDateFormatted}_${safeBlockLot}_${Date.now()}.${fileExt}`;
+      const filePath = `${safeProject}/${safeClientName}/${fileName}`;
       
       toast.loading('Uploading receipt...');
       const { error: uploadError } = await supabase.storage
