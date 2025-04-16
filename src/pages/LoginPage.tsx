@@ -71,7 +71,7 @@ const LoginPage = () => {
             
           ];
           const adminNames: { [email: string]: string } = {
-            'rowelhal.hdc@gmail.com': 'Rowelha Langres',
+            'rowelhal.hdc@gmail.com': 'France Dotdot',
             'angelap.hdc@gmail.com': 'Baby Chan Ko',
             'guest@gmail.com': 'John Doe',
           };
