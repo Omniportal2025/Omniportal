@@ -72,7 +72,7 @@ const LoginPage = () => {
           ];
           const adminNames: { [email: string]: string } = {
             'rowelhal.hdc@gmail.com': 'Rowelha Langres',
-            'angelap.hdc@gmail.com': 'Angela Pulumbarit',
+            'angelap.hdc@gmail.com': 'Baby Chan Ko',
             'guest@gmail.com': 'John Doe',
           };
           if (
