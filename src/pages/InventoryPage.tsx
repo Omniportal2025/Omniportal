@@ -1083,7 +1083,6 @@ const InventoryPage: React.FC = () => {
         updateData['Date of Reservation'] = '';
         updateData['Seller Name'] = '';
         updateData['Broker / Realty'] = '';
-        updateData['Sales Director'] = '';
       } else {
         // Havahills property fields
         updateData['Buyers Name'] = '';
@@ -1095,6 +1094,14 @@ const InventoryPage: React.FC = () => {
         updateData['Broker'] = '';
         updateData['Sales Director'] = '';
         updateData['Mode of Payment'] = '';
+      }
+      // Only add Sales Director for Havahills
+      if (!isLivingWaterProperty(propertyToReopen)) {
+        updateData['Sales Director'] = '';
+      }
+      // Only add Seller Name for Living Water
+      if (isLivingWaterProperty(propertyToReopen)) {
+        updateData['Seller Name'] = '';
       }
 
       // Update the property in the database
