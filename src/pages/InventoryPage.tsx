@@ -23,9 +23,11 @@ interface LivingWaterProperty {
   TSP: number;
   "MISC FEE": number;
   "Net Contract Price": number;
-  "Monthly Amortization": number;
+  "First MA": number;
   "1st MA net of Advance Payment": number;
   "2ndto60th MA": number;
+  Term: string;
+  "Optional: Advance Payment"?: number;
   Year: number;
   Status?: string;
   created_at?: string;
@@ -92,6 +94,7 @@ const statusOptions = [
 ];
 
 const InventoryPage: React.FC = () => {
+
   const [selectedProject, setSelectedProject] = useState(projects[0]);
   const [searchTerm, setSearchTerm] = useState('');
   const [properties, setProperties] = useState<Property[]>([]);
@@ -318,7 +321,7 @@ const InventoryPage: React.FC = () => {
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property.TSP)}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property["MISC FEE"])}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property["Net Contract Price"])}</td>
-                <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property["Monthly Amortization"])}</td>
+                <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property["First MA"])}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property["1st MA net of Advance Payment"])}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property["2ndto60th MA"])}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">
@@ -723,7 +726,7 @@ const InventoryPage: React.FC = () => {
           TSP: parseNumericValue(item.TSP),
           "MISC FEE": parseNumericValue(item["MISC FEE"]),
           "Net Contract Price": parseNumericValue(item["Net Contract Price"]),
-          "Monthly Amortization": parseNumericValue(item["Monthly Amortization"]),
+          "First MA": parseNumericValue(item["First MA"]),
           "1st MA net of Advance Payment": parseNumericValue(item["1st MA net of Advance Payment"]),
           "2ndto60th MA": parseNumericValue(item["2ndto60th MA"]),
           Year: parseNumericValue(item.Year),
@@ -821,7 +824,7 @@ const InventoryPage: React.FC = () => {
         console.log('First Due Month:', lwProperty["First Due Month"]);
         console.log('Amount:', lwProperty.Amount);
         console.log('Realty:', lwProperty.Realty);
-        console.log('Sales Director:', lwProperty["Sales Director"]);
+        // Sales Director column removed from updateData and logs
         console.log('Seller Name:', lwProperty["Seller Name"]);
         console.log('Broker / Realty:', lwProperty["Broker / Realty"]);
         console.log('Reservation:', lwProperty.Reservation);
@@ -831,36 +834,36 @@ const InventoryPage: React.FC = () => {
         console.log('TSP:', lwProperty.TSP);
         console.log('MISC FEE:', lwProperty["MISC FEE"]);
         console.log('Net Contract Price:', lwProperty["Net Contract Price"]);
-        console.log('Monthly Amortization:', lwProperty["Monthly Amortization"]);
+        console.log('Monthly Amortization:', lwProperty["First MA"]);
         console.log('1st MA net of Advance Payment:', lwProperty["1st MA net of Advance Payment"]);
         console.log('2ndto60th MA:', lwProperty["2ndto60th MA"]);
         
         // Ensure all fields are included in the update data
         updateData = {
-          Block: lwProperty.Block,
-          Lot: lwProperty.Lot,
-          "Due Date 15/30": lwProperty["Due Date 15/30"] || '',
-          "First Due Month": lwProperty["First Due Month"] || '',
-          Amount: lwProperty.Amount || 0,
-          Realty: lwProperty.Realty || '',
-          "Sales Director": lwProperty["Sales Director"] || '',
-          Owner: lwProperty.Owner || '',
-          "Date of Reservation": lwProperty["Date of Reservation"] || new Date().toISOString().split('T')[0],
-          "Seller Name": lwProperty["Seller Name"] || '',
-          "Broker / Realty": lwProperty["Broker / Realty"] || '',
-          Reservation: lwProperty.Reservation || 0,
-          "Lot Area": lwProperty["Lot Area"] || 0,
-          "Price per sqm": lwProperty["Price per sqm"] || 0,
-          TCP: lwProperty.TCP || 0,
-          TSP: lwProperty.TSP || 0,
-          "MISC FEE": lwProperty["MISC FEE"] || 0,
-          "Net Contract Price": lwProperty["Net Contract Price"] || 0,
-          "Monthly Amortization": lwProperty["Monthly Amortization"] || 0,
-          "1st MA net of Advance Payment": lwProperty["1st MA net of Advance Payment"] || 0,
-          "2ndto60th MA": lwProperty["2ndto60th MA"] || 0,
-          Year: lwProperty.Year || 0,
-          Status: 'Sold'
-        };
+  Block: lwProperty.Block,
+  Lot: lwProperty.Lot,
+  "Price per sqm": lwProperty["Price per sqm"] || 0,
+  TCP: lwProperty.TCP || 0,
+  Status: 'Sold',
+  "First MA": lwProperty["First MA"] || 0,
+  Owner: lwProperty.Owner || '',
+  Term: lwProperty.Term || '',
+  "Lot Area": lwProperty["Lot Area"] || 0,
+  TSP: lwProperty.TSP || 0,
+  "MISC FEE": lwProperty["MISC FEE"] || 0,
+  "2ndto60th MA": lwProperty["2ndto60th MA"] || 0,
+  "First Due Month": lwProperty["First Due Month"] || '',
+  "Date of Reservation": lwProperty["Date of Reservation"] || new Date().toISOString().split('T')[0],
+  "Seller Name": lwProperty["Seller Name"] || '',
+  "Broker / Realty": lwProperty["Broker / Realty"] || '',
+  Reservation: lwProperty.Reservation || 0,
+  "Due Date 15/30": lwProperty["Due Date 15/30"] || '',
+  Amount: lwProperty.Amount || 0,
+  "Net Contract Price": lwProperty["Net Contract Price"] || 0,
+  Realty: lwProperty.Realty || '',
+  "Optional: Advance Payment": lwProperty["Optional: Advance Payment"] || 0,
+  "1st MA net of Advance Payment": lwProperty["1st MA net of Advance Payment"] || 0
+};
       } 
       // Handle Havahills properties
       else {
@@ -965,7 +968,7 @@ const InventoryPage: React.FC = () => {
                 propertyToSell["Net Contract Price"] : 
                 propertyToSell.TCP,
               'Amount': isLivingWaterProperty(propertyToSell) ? 
-                propertyToSell["Monthly Amortization"] : 
+                propertyToSell["First MA"] : 
                 propertyToSell["1ST MA"],
               'Months Paid': '0',
               'MONTHS PAID': 0
@@ -985,7 +988,7 @@ const InventoryPage: React.FC = () => {
               propertyToSell["Net Contract Price"] : 
               propertyToSell.TCP,
             'Amount': isLivingWaterProperty(propertyToSell) ? 
-              propertyToSell["Monthly Amortization"] : 
+              propertyToSell["First MA"] : 
               propertyToSell["1ST MA"],
             'Months Paid': '0',
             'MONTHS PAID': 0,
@@ -1474,7 +1477,7 @@ const InventoryPage: React.FC = () => {
                             </div>
                           </div>
                           <div className="relative">
-                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">Monthly Amortization</label>
+                            <label className="absolute -top-2 left-3 bg-white px-1 text-xs font-medium text-gray-600 z-10">First MA</label>
                             <div className="relative">
                               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
@@ -1484,8 +1487,8 @@ const InventoryPage: React.FC = () => {
                               <input
                                 type="number"
                                 className="block w-full rounded-lg border-2 border-gray-200 pt-3 pb-2 pl-10 pr-4 text-gray-900 focus:border-gray-500 focus:ring-0 sm:text-sm transition-all duration-200 bg-white/50 hover:bg-white"
-                                value={propertyToSell["Monthly Amortization"] || ''}
-                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "Monthly Amortization": parseFloat(e.target.value) } : null)}
+                                value={propertyToSell["First MA"] || ''}
+                                onChange={(e) => setPropertyToSell(prev => prev ? { ...prev as LivingWaterProperty, "First MA": parseFloat(e.target.value) } : null)}
                               />
                             </div>
                           </div>
