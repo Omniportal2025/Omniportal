@@ -2060,6 +2060,14 @@ const ClientDashboardPage: React.FC = () => {
                 </svg>
               </button>
               
+              {/* Change Password button for desktop/tablet */}
+              <button
+                onClick={() => setIsChangePasswordModalOpen(true)}
+                className="hidden md:inline-flex items-center ml-2 p-2 rounded-full hover:bg-white/10 transition"
+                aria-label="Change Password"
+              >
+                <KeyIcon className="h-6 w-6 text-white" />
+              </button>
               <button
                 onClick={handleSignOut}
                 className="ml-2 p-2 rounded-full hover:bg-white/10 transition"
@@ -2248,6 +2256,7 @@ const ClientDashboardPage: React.FC = () => {
                     <dd className="text-base font-semibold text-gray-900 break-all md:text-lg">{client?.Email || 'N/A'}</dd>
                   </div>
                 </dl>
+                {/* Change Password Button for desktop/tablet was moved to header */}
               </div>
             </div>
             
