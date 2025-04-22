@@ -31,6 +31,8 @@ interface Payment {
   "Block & Lot": string;
   "Payment Amount": number;
   "Penalty Amount"?: number | null;
+  Vat?: number | null;
+  VatType?: 'Vatable' | 'Non - Vatable';
   "Date of Payment": string;
   Status: string;
   receipt_path: string;
@@ -298,6 +300,7 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
   const [paymentDate, setPaymentDate] = useState<string>('');
   const [paymentMonth, setPaymentMonth] = useState<string>(new Date().toISOString().slice(0, 7));
   const [dueDate, setDueDate] = useState<string>('15th');
+  const [vat, setVat] = useState<string>('Non Vat');
   const [clients, setClients] = useState<ClientData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -369,6 +372,7 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
       setReferenceNumber('');
       setPaymentDate('');
       setPaymentMonth('');
+      setVat('Non Vat'); // Reset VAT
     }
   }, [isOpen]);
 
@@ -459,6 +463,7 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
           "Project": selectedProject,
           "Status": "Pending",
           "Reference Number": referenceNumber,
+          "Vat": vat, // Save VAT selection
           created_at: new Date().toISOString()
         });
 
@@ -636,6 +641,22 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
                     />
                   </div>
 
+                  {/* VAT Dropdown */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      VAT *
+                    </label>
+                    <select
+                      value={vat}
+                      onChange={e => setVat(e.target.value)}
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                      required
+                    >
+                      <option value="Non Vat">Non Vat</option>
+                      <option value="Vatable">Vatable</option>
+                    </select>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Penalty (if applicable)
@@ -797,6 +818,8 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({ isOpen, onClose, pa
           'Block & Lot': editedPayment['Block & Lot'],
           'Payment Amount': editedPayment['Payment Amount'],
           'Penalty Amount': editedPayment['Penalty Amount'],
+          Vat: editedPayment.Vat,
+          VatType: editedPayment.VatType,
           'Date of Payment': editedPayment['Date of Payment'],
           'Month of Payment': editedPayment['Month of Payment'],
           'Reference Number': editedPayment['Reference Number'],
@@ -818,7 +841,23 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({ isOpen, onClose, pa
     }
   };
 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
   if (!editedPayment) return null;
+
+  const validate = () => {
+    const newErrors: { [key: string]: string } = {};
+    if (!editedPayment?.Name?.trim()) newErrors.Name = 'Name is required.';
+    if (!editedPayment?.['Payment Amount'] && editedPayment?.['Payment Amount'] !== 0) newErrors['Payment Amount'] = 'Payment Amount is required.';
+    if (!editedPayment?.VatType) newErrors.VatType = 'VAT Type is required.';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSaveWithValidation = async () => {
+    if (!validate()) return;
+    await handleSave();
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -868,119 +907,140 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({ isOpen, onClose, pa
                     </button>
                   </div>
                 </div>
-                <div className="px-6 pb-6 space-y-4">
-                  <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700">Name</label>
-                    <input
-                      type="text"
-                      value={editedPayment.Name}
-                      onChange={(e) => setEditedPayment({ ...editedPayment, Name: e.target.value })}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
-                    />
+                {/* Modal body scrollable if needed */}
+                <div className="px-6 pb-6 space-y-8 max-h-[70vh] overflow-y-auto">
+                  {/* Section: Payment Details */}
+                  <div>
+                    <h4 className="text-md font-semibold text-[#0A0D50] mb-3">Payment Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700">Name <span className="text-red-500">*</span></label>
+                        <input
+                          type="text"
+                          value={editedPayment.Name}
+                          onChange={(e) => setEditedPayment({ ...editedPayment, Name: e.target.value })}
+                          className={`block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6 ${errors.Name ? 'ring-red-400' : ''}`}
+                        />
+                        {errors.Name && <p className="text-xs text-red-500 mt-1">{errors.Name}</p>}
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700">Block & Lot</label>
+                        <input
+                          type="text"
+                          value={editedPayment['Block & Lot']}
+                          onChange={(e) => setEditedPayment({ ...editedPayment, 'Block & Lot': e.target.value })}
+                          className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700">Payment Amount <span className="text-red-500">*</span></label>
+                        <input
+                          type="number"
+                          value={editedPayment['Payment Amount']}
+                          onChange={(e) => setEditedPayment({ ...editedPayment, 'Payment Amount': parseFloat(e.target.value) })}
+                          className={`block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6 ${errors['Payment Amount'] ? 'ring-red-400' : ''}`}
+                        />
+                        {errors['Payment Amount'] && <p className="text-xs text-red-500 mt-1">{errors['Payment Amount']}</p>}
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700">Penalty Amount</label>
+                        <input
+                          type="number"
+                          value={editedPayment['Penalty Amount'] || ''}
+                          onChange={(e) => setEditedPayment({ ...editedPayment, 'Penalty Amount': e.target.value ? parseFloat(e.target.value) : null })}
+                          className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700">Date of Payment</label>
+                        <input
+                          type="date"
+                          value={editedPayment['Date of Payment'].split('T')[0]}
+                          onChange={(e) => setEditedPayment({ ...editedPayment, 'Date of Payment': e.target.value })}
+                          className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700">Month of Payment</label>
+                        <input
+                          type="month"
+                          value={editedPayment['Month of Payment']?.split('T')[0].slice(0, 7)}
+                          onChange={(e) => setEditedPayment({ ...editedPayment, 'Month of Payment': e.target.value + '-01' })}
+                          className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700">Reference Number</label>
+                        <input
+                          type="text"
+                          value={editedPayment['Reference Number'] || ''}
+                          onChange={(e) => setEditedPayment({ ...editedPayment, 'Reference Number': e.target.value })}
+                          className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700">Project</label>
+                        <select
+                          value={editedPayment.Project}
+                          onChange={(e) => setEditedPayment({ ...editedPayment, Project: e.target.value })}
+                          className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                        >
+                          <option value="Living Water Subdivision">Living Water Subdivision</option>
+                          <option value="Havahills Estate">Havahills Estate</option>
+                        </select>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700">Due Date</label>
+                        <select
+                          value={editedPayment['Due Date'] || ''}
+                          onChange={(e) => setEditedPayment({ ...editedPayment, 'Due Date': e.target.value })}
+                          className="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
+                        >
+                          <option value="">Select Due Date</option>
+                          <option value="15th">15th</option>
+                          <option value="30th">30th</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700">Block & Lot</label>
-                    <input
-                      type="text"
-                      value={editedPayment['Block & Lot']}
-                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Block & Lot': e.target.value })}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700">Payment Amount</label>
-                    <input
-                      type="number"
-                      value={editedPayment['Payment Amount']}
-                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Payment Amount': parseFloat(e.target.value) })}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700">Penalty Amount</label>
-                    <input
-                      type="number"
-                      value={editedPayment['Penalty Amount'] || ''}
-                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Penalty Amount': e.target.value ? parseFloat(e.target.value) : null })}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700">Date of Payment</label>
-                    <input
-                      type="date"
-                      value={editedPayment['Date of Payment'].split('T')[0]}
-                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Date of Payment': e.target.value })}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700">Month of Payment</label>
-                    <input
-                      type="month"
-                      value={editedPayment['Month of Payment']?.split('T')[0].slice(0, 7)}
-                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Month of Payment': e.target.value + '-01' })}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700">Reference Number</label>
-                    <input
-                      type="text"
-                      value={editedPayment['Reference Number'] || ''}
-                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Reference Number': e.target.value })}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700">Project</label>
-                    <select
-                      value={editedPayment.Project}
-                      onChange={(e) => setEditedPayment({ ...editedPayment, Project: e.target.value })}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
-                    >
-                      <option value="Living Water Subdivision">Living Water Subdivision</option>
-                      <option value="Havahills Estate">Havahills Estate</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700">Months Paid</label>
-                    <input
-                      type="number"
-                      value={editedPayment['MONTHS PAID'] || ''}
-                      onChange={(e) => setEditedPayment({ ...editedPayment, 'MONTHS PAID': e.target.value ? parseInt(e.target.value) : null })}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700">Due Date</label>
-                    <select
-                      value={editedPayment['Due Date'] || ''}
-                      onChange={(e) => setEditedPayment({ ...editedPayment, 'Due Date': e.target.value })}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
-                    >
-                      <option value="">Select Due Date</option>
-                      <option value="15th">15th</option>
-                      <option value="30th">30th</option>
-                    </select>
-                  </div>
-                </div>
 
-                <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    className="inline-flex justify-center rounded-lg border border-transparent bg-[#0A0D50] px-4 py-2 text-sm font-medium text-white hover:bg-[#0A0D50]/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
-                  >
-                    Save Changes
-                  </button>
+                  {/* Section: VAT Details */}
+                  <div>
+                    <h4 className="text-md font-semibold text-[#0A0D50] mb-3 mt-6">VAT Details</h4>
+                    <div className="space-y-1">
+                      <label className="block text-sm font-medium text-gray-700">VAT Type <span className="text-red-500">*</span></label>
+                      <select
+                        value={editedPayment.VatType ?? ''}
+                        onChange={e => setEditedPayment({ ...editedPayment, VatType: e.target.value as 'Vatable' | 'Non - Vatable' })}
+                        className={`block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6 ${errors.VatType ? 'ring-red-400' : ''}`}
+                      >
+                        <option value="">Select VAT Type</option>
+                        <option value="Vatable">Vatable</option>
+                        <option value="Non - Vatable">Non - Vatable</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">Choose if this payment is subject to VAT or not.</p>
+                      {errors.VatType && <p className="text-xs text-red-500 mt-1">{errors.VatType}</p>}
+                    </div>
+                  </div>
+
+                  {/* Modal Actions */}
+                  <div className="flex flex-col md:flex-row justify-end gap-2 md:gap-3 px-0 md:px-6 py-4 bg-gray-50 mt-6 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveWithValidation}
+                      className="inline-flex justify-center rounded-lg border border-transparent bg-[#0A0D50] px-4 py-2 text-sm font-medium text-white hover:bg-[#0A0D50]/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -1331,7 +1391,8 @@ const PaymentPage: React.FC = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[10%]">Block & Lot</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[10%]">Amount</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[10%]">Penalty Amount</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-white uppercase tracking-wider w-[10%]">Client Receipt</th>
+<th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[10%]">VAT</th>
+<th className="px-6 py-3 text-right text-xs font-medium text-white uppercase tracking-wider w-[10%]">Client Receipt</th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-white uppercase tracking-wider w-[10%]">AR Receipt</th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-white uppercase tracking-wider w-[10%]">Action</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[10%]">Status</th>
@@ -1365,8 +1426,11 @@ const PaymentPage: React.FC = () => {
                           ₱{payment["Payment Amount"].toLocaleString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {payment["Penalty Amount"] ? `₱${payment["Penalty Amount"].toLocaleString()}` : 'N/A'}
-                        </td>
+  {payment["Penalty Amount"] ? `₱${payment["Penalty Amount"].toLocaleString()}` : 'N/A'}
+</td>
+<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+  {typeof payment.Vat === 'number' ? `₱${payment.Vat.toLocaleString()}` : 'N/A'}
+</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                           {payment.receipt_path ? (
                             <button
