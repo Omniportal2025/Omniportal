@@ -16,6 +16,7 @@ interface PaymentRecord {
   Block: string;
   Lot: string;
   Penalty: number;
+  Vat?: number | null;
   "Payment Type": string;
   "Payment for the Month of": string;
   "Due Date": string;
@@ -586,14 +587,15 @@ const ReportPage = (): ReactNode => {
               <thead>
               <tr>
                 <th>Date</th>
-                <th>Payment for the Month of</th>
-                <th>Name</th>
-                <th>Project</th>
-                <th>Block & Lot</th>
-                <th>Amount</th>
-                <th>Penalty</th>
-                <th>Payment Type</th>
-                <th>Due Date</th>
+<th>Payment for the Month of</th>
+<th>Name</th>
+<th>Project</th>
+<th>Block & Lot</th>
+<th>Amount</th>
+<th>Penalty</th>
+<th>Payment Type</th>
+<th>Due Date</th>
+<th>VAT</th>
               </tr>
             </thead>
             <tbody>
@@ -608,6 +610,7 @@ const ReportPage = (): ReactNode => {
                   <td>${record.Penalty ? `₱${record.Penalty.toLocaleString()}` : 'N/A'}</td>
                   <td>${record["Payment Type"]}</td>
                   <td>${record["Due Date"] || 'N/A'}</td>
+<td>${typeof record.Vat === 'number' ? `₱${record.Vat.toLocaleString()}` : 'N/A'}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -910,11 +913,14 @@ const ReportPage = (): ReactNode => {
                     Payment Type
                   </th>
                   <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[120px]">
-                    Due Date
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[100px]">
-                    Actions
-                  </th>
+  Due Date
+</th>
+<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[100px]">
+  VAT
+</th>
+<th scope="col" className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider w-[100px]">
+  Actions
+</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200 overflow-auto">
@@ -982,6 +988,9 @@ const ReportPage = (): ReactNode => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                         {record["Due Date"] || 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        {typeof record.Vat === 'number' ? `₱${record.Vat.toLocaleString()}` : 'N/A'}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium flex gap-2">
                         <button
