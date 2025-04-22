@@ -992,6 +992,8 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({ isOpen, onClose, pa
 };
 
 const PaymentPage: React.FC = () => {
+  // ...existing state
+  const [showNoARReceiptsOnly, setShowNoARReceiptsOnly] = useState(false);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
@@ -1118,9 +1120,10 @@ const PaymentPage: React.FC = () => {
                recordDate.getMonth() === selectedDate.getMonth() &&
                recordDate.getFullYear() === selectedDate.getFullYear();
       })());
-      return matchesSearch && matchesProject && matchesStatus && matchesDate;
+      const matchesNoAR = !showNoARReceiptsOnly || !payment.ar_receipt_path;
+      return matchesSearch && matchesProject && matchesStatus && matchesDate && matchesNoAR;
     });
-  }, [payments, searchTerm, selectedProject, selectedStatus, selectedDate]);
+  }, [payments, searchTerm, selectedProject, selectedStatus, selectedDate, showNoARReceiptsOnly]);
 
 
 
@@ -1252,6 +1255,16 @@ const PaymentPage: React.FC = () => {
           {/* Filters Group */}
           <div className="flex items-center gap-4">
             <div className="flex items-center space-x-4">
+              {/* No AR Receipt Filter */}
+              <label className="flex items-center space-x-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={showNoARReceiptsOnly}
+                  onChange={e => setShowNoARReceiptsOnly(e.target.checked)}
+                  className="form-checkbox h-4 w-4 text-blue-600"
+                />
+                <span>No AR Receipt</span>
+              </label>
             <div>
               <DatePicker
                 selected={selectedDate}
