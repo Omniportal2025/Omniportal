@@ -21,7 +21,7 @@ const AdminDashboardPage = () => {
   const [isRestrictedUser, setIsRestrictedUser] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { pendingPaymentsCount } = usePayment();
-  const { newTicketsCount } = useTicket();
+  const { newTicketsCount, inProgressTicketsCount } = useTicket();
 
   // Re-enable auth check
   useEffect(() => {
@@ -259,10 +259,16 @@ const AdminDashboardPage = () => {
                         </span>
                       )}
 
-                      {/* Ticket Notification Badge */}
+                      {/* Ticket Notification Badge: New tickets */}
                       {item.name === 'Ticket' && newTicketsCount > 0 && (
                         <span className="ml-2 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium rounded-full bg-gradient-to-r from-red-500 to-red-600 text-white shadow-sm shadow-red-500/30 transform transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-px">
                           {newTicketsCount}
+                        </span>
+                      )}
+                      {/* Ticket Notification Badge: In-progress tickets */}
+                      {item.name === 'Ticket' && inProgressTicketsCount > 0 && (
+                        <span className="ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-medium rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-sm shadow-yellow-500/30 transform transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-px">
+                          {inProgressTicketsCount}
                         </span>
                       )}
                     </div>

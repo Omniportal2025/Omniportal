@@ -3,17 +3,20 @@ import { supabase } from '../lib/supabaseClient';
 
 interface TicketContextType {
   newTicketsCount: number;
+  inProgressTicketsCount: number;
 }
 
-const TicketContext = createContext<TicketContextType>({ newTicketsCount: 0 });
+const TicketContext = createContext<TicketContextType>({ newTicketsCount: 0, inProgressTicketsCount: 0 });
 
 export const useTicket = () => useContext(TicketContext);
 
 export const TicketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [newTicketsCount, setNewTicketsCount] = useState(0);
+  const [inProgressTicketsCount, setInProgressTicketsCount] = useState(0);
 
   useEffect(() => {
     fetchNewTicketsCount();
+    fetchInProgressTicketsCount();
     setupRealtimeSubscription();
   }, []);
 
@@ -31,6 +34,20 @@ export const TicketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  const fetchInProgressTicketsCount = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('Tickets')
+        .select('id', { count: 'exact' })
+        .in('Status', ['in_progress', 'in progress']);
+
+      if (error) throw error;
+      setInProgressTicketsCount(data.length);
+    } catch (error) {
+      console.error('Error fetching in-progress tickets:', error);
+    }
+  };
+
   const setupRealtimeSubscription = () => {
     const subscription = supabase
       .channel('ticket-changes')
@@ -43,6 +60,7 @@ export const TicketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         },
         () => {
           fetchNewTicketsCount();
+          fetchInProgressTicketsCount();
         }
       )
       .subscribe();
@@ -53,7 +71,7 @@ export const TicketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   return (
-    <TicketContext.Provider value={{ newTicketsCount }}>
+    <TicketContext.Provider value={{ newTicketsCount, inProgressTicketsCount }}>
       {children}
     </TicketContext.Provider>
   );
