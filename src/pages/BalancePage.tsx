@@ -151,28 +151,6 @@ const BalancePage: FC = () => {
     }
   };
 
-  const handleDelete = async (balance: BalanceData) => {
-    try {
-      const { error } = await supabase
-        .from('Balance')
-        .delete()
-        .eq('id', balance.id);
-
-      if (error) throw error;
-
-      await fetchBalances();
-      setShowDeleteConfirm(false);
-      setSelectedBalance(null);
-    } catch (err: any) {
-      console.error('Error deleting balance record:', err.message);
-    }
-  };
-
-  const handleDeleteConfirm = (balance: BalanceData) => {
-    setSelectedBalance(balance);
-    setShowDeleteConfirm(true);
-  };
-
   const handleView = (balance: BalanceData) => {
     setSelectedBalance(balance);
     setIsViewModalOpen(true);
