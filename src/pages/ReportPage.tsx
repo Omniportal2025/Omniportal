@@ -16,7 +16,7 @@ interface PaymentRecord {
   Block: string;
   Lot: string;
   Penalty: number;
-  Vat?: number | null;
+  Vat?: string | null;
   "Payment Type": string;
   "Payment for the Month of": string;
   "Due Date": string;
@@ -154,7 +154,8 @@ const ReportPage = (): ReactNode => {
           Block: updatedRecord.Block,
           Lot: updatedRecord.Lot,
           "Payment Type": updatedRecord["Payment Type"],
-          "Due Date": updatedRecord["Due Date"]
+          "Due Date": updatedRecord["Due Date"],
+          Vat: updatedRecord.Vat // Save VAT value
         })
         .eq('id', updatedRecord.id);
 
@@ -610,7 +611,7 @@ const ReportPage = (): ReactNode => {
                   <td>${record.Penalty ? `₱${record.Penalty.toLocaleString()}` : 'N/A'}</td>
                   <td>${record["Payment Type"]}</td>
                   <td>${record["Due Date"] || 'N/A'}</td>
-<td>${typeof record.Vat === 'number' ? `₱${record.Vat.toLocaleString()}` : 'N/A'}</td>
+<td>${record.Vat || 'N/A'}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -990,7 +991,7 @@ const ReportPage = (): ReactNode => {
                         {record["Due Date"] || 'N/A'}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                        {typeof record.Vat === 'number' ? `₱${record.Vat.toLocaleString()}` : 'N/A'}
+                        {record.Vat || 'N/A'}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium flex gap-2">
                         <button
@@ -1161,6 +1162,18 @@ const ReportPage = (): ReactNode => {
                         ))}
                       </select>
                     </div>
+                  </div>
+                  {/* VAT Dropdown */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">VAT</label>
+                    <select
+                      value={editingRecord.Vat || ''}
+                      onChange={e => setEditingRecord({ ...editingRecord, Vat: e.target.value })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#0A0D50] focus:ring-[#0A0D50] sm:text-sm"
+                    >
+                      <option value="Non Vat">Non Vat</option>
+                      <option value="Vatable">Vatable</option>
+                    </select>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>

@@ -471,6 +471,27 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
         throw new Error(`Error saving payment information: ${dbError.message}`);
       }
 
+      // 3. Save to Payment Record table (for reporting)
+      const { error: recordError } = await supabase
+        .from('Payment Record')
+        .insert({
+          "Name": selectedName,
+          "Project": selectedProject,
+          "Block": selectedBlockLot.split(' ')[1], // Assuming format 'Block X Lot Y'
+          "Lot": selectedBlockLot.split(' ')[3],   // Assuming format 'Block X Lot Y'
+          "Amount": parseFloat(amount),
+          "Penalty": penalty ? parseFloat(penalty) : null,
+          "Vat": vat, // Save VAT selection
+          "Payment Type": "Online", // Or get from another field if available
+          "Payment for the Month of": paymentMonth,
+          "Due Date": dueDate,
+          created_at: new Date().toISOString()
+        });
+
+      if (recordError) {
+        throw new Error(`Error saving payment record: ${recordError.message}`);
+      }
+
       // Success
       toast.success('Payment uploaded successfully!', { id: loadingToastId });
       onUpload();
