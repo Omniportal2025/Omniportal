@@ -7,7 +7,6 @@ interface EditBalanceModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: EditBalanceData) => Promise<void>;
-  onDelete: () => void;
   data: EditBalanceData | null;
 }
 
