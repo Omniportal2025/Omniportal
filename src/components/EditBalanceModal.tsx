@@ -26,6 +26,7 @@ export interface EditBalanceData {
   "Penalty"?: number | null;
   "Payment Type"?: string;
   "Due Date"?: string | null;
+  Vat?: string | null;
 }
 
 interface PaymentRecord {
@@ -38,6 +39,7 @@ interface PaymentRecord {
   "Penalty"?: number;
   "Payment for the Month of": string;
   "Due Date"?: string;
+  Vat?: string | null;
 }
 
 const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, onSave, data }) => {
@@ -49,6 +51,7 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
   const [paymentType, setPaymentType] = React.useState<string>('GCASH');
   const [paymentMonth, setPaymentMonth] = React.useState<string>('');
   const [dueDate, setDueDate] = React.useState<string>(data?.["Due Date"] === "15th" || data?.["Due Date"] === "30th" ? data["Due Date"] : "30th");
+  const [vat, setVat] = React.useState<string>('Non Vat');
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -70,13 +73,15 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
         ...data,
         "Amount": null,
         "Penalty": null,
-        "Payment Type": 'cash'
+        "Payment Type": 'cash',
+        Vat: 'Non Vat',
       });
       setCurrentRemainingBalance(data["Remaining Balance"]);
       setTotalAmount(data.Amount);
       setPenalty(null);
       setPaymentType('cash');
       setDueDate(data?.["Due Date"] === "15th" || data?.["Due Date"] === "30th" ? data["Due Date"] : "30th");
+      setVat('Non Vat');
     }
   }, [data]);
 
@@ -107,7 +112,8 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
         'Remaining Balance': newRemainingBalance,
         'Amount': newTotalAmount,
         'MONTHS PAID': newMonthsPaid.toString(),
-        'Due Date': dueDate
+        'Due Date': dueDate,
+        Vat: vat,
       };
 
       // First update the Balance table
@@ -123,6 +129,7 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
         "Payment Type": paymentType,
         "Payment for the Month of": paymentMonth,
         "Due Date": dueDate,
+        Vat: vat,
       };
 
       // Only add penalty if it has a value
@@ -318,7 +325,7 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
                         </span>
                         <span>Payment Details</span>
                       </h4>
-                      <div className="grid gap-3">
+                       <div className="grid gap-3">
                           <div className="grid grid-cols-2 gap-3">
                             <div className="bg-gray-50/50 border border-gray-100 hover:border-gray-200 rounded-lg p-3 transition-all">
                               <label htmlFor="amount" className="block text-sm font-medium text-gray-600 mb-1">
@@ -337,6 +344,21 @@ const EditBalanceModal: React.FC<EditBalanceModalProps> = ({ isOpen, onClose, on
                                   placeholder="0.00"
                                 />
                               </div>
+                            </div>
+                            {/* VAT Dropdown */}
+                            <div className="bg-gray-50/50 border border-gray-100 hover:border-gray-200 rounded-lg p-3 transition-all">
+                              <label htmlFor="vat" className="block text-sm font-medium text-gray-600 mb-1">
+                                VAT
+                              </label>
+                              <select
+                                id="vat"
+                                value={vat}
+                                onChange={(e) => setVat(e.target.value)}
+                                className="block w-full rounded-md border-0 bg-white px-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 focus:ring-2 focus:ring-inset focus:ring-blue-500 sm:text-sm transition-all"
+                              >
+                                <option value="Non Vat">Non Vat</option>
+                                <option value="Vatable">Vatable</option>
+                              </select>
                             </div>
 
                             <div className="bg-gray-50/50 border border-gray-100 hover:border-gray-200 rounded-lg p-3 transition-all">
