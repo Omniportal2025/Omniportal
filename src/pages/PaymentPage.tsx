@@ -31,8 +31,8 @@ interface Payment {
   "Block & Lot": string;
   "Payment Amount": number;
   "Penalty Amount"?: number | null;
-  Vat?: number | null;
-  VatType?: 'Vatable' | 'Non - Vatable';
+  Vat?: string | null;
+
   "Date of Payment": string;
   Status: string;
   receipt_path: string;
@@ -811,7 +811,8 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({ isOpen, onClose, pa
     if (!editedPayment) return;
 
     try {
-      const { error } = await supabase
+      console.log('Attempting to update payment with:', editedPayment);
+      const { data, error } = await supabase
         .from('Payment')
         .update({
           Name: editedPayment.Name,
@@ -819,7 +820,6 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({ isOpen, onClose, pa
           'Payment Amount': editedPayment['Payment Amount'],
           'Penalty Amount': editedPayment['Penalty Amount'],
           Vat: editedPayment.Vat,
-          VatType: editedPayment.VatType,
           'Date of Payment': editedPayment['Date of Payment'],
           'Month of Payment': editedPayment['Month of Payment'],
           'Reference Number': editedPayment['Reference Number'],
@@ -829,17 +829,18 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({ isOpen, onClose, pa
           'Due Date': editedPayment['Due Date']
         })
         .eq('id', editedPayment.id);
-
+      console.log('Supabase update result:', { data, error });
       if (error) throw error;
       
       toast.success('Payment updated successfully');
       onSave();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating payment:', error);
-      toast.error('Failed to update payment');
+      toast.error(`Failed to update payment: ${error?.message || JSON.stringify(error)}`);
     }
   };
+
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -849,7 +850,7 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({ isOpen, onClose, pa
     const newErrors: { [key: string]: string } = {};
     if (!editedPayment?.Name?.trim()) newErrors.Name = 'Name is required.';
     if (!editedPayment?.['Payment Amount'] && editedPayment?.['Payment Amount'] !== 0) newErrors['Payment Amount'] = 'Payment Amount is required.';
-    if (!editedPayment?.VatType) newErrors.VatType = 'VAT Type is required.';
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -1011,16 +1012,15 @@ const EditPaymentModal: React.FC<EditPaymentModalProps> = ({ isOpen, onClose, pa
                     <div className="space-y-1">
                       <label className="block text-sm font-medium text-gray-700">VAT Type <span className="text-red-500">*</span></label>
                       <select
-                        value={editedPayment.VatType ?? ''}
-                        onChange={e => setEditedPayment({ ...editedPayment, VatType: e.target.value as 'Vatable' | 'Non - Vatable' })}
-                        className={`block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6 ${errors.VatType ? 'ring-red-400' : ''}`}
+                        value={editedPayment.Vat ?? ''}
+                        onChange={e => setEditedPayment({ ...editedPayment, Vat: e.target.value })}
+                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-[#0A0D50] sm:text-sm sm:leading-6"
                       >
                         <option value="">Select VAT Type</option>
                         <option value="Vatable">Vatable</option>
-                        <option value="Non - Vatable">Non - Vatable</option>
+                        <option value="Non Vat">Non Vat</option>
                       </select>
                       <p className="text-xs text-gray-500 mt-1">Choose if this payment is subject to VAT or not.</p>
-                      {errors.VatType && <p className="text-xs text-red-500 mt-1">{errors.VatType}</p>}
                     </div>
                   </div>
 
@@ -1429,7 +1429,7 @@ const PaymentPage: React.FC = () => {
   {payment["Penalty Amount"] ? `₱${payment["Penalty Amount"].toLocaleString()}` : 'N/A'}
 </td>
 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-  {typeof payment.Vat === 'number' ? `₱${payment.Vat.toLocaleString()}` : 'N/A'}
+  {payment.Vat || 'N/A'}
 </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
                           {payment.receipt_path ? (
