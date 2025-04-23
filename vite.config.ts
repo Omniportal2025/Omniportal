@@ -1,14 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Check if we're building for the custom domain
-const isCustomDomain = process.env.BUILD_MODE === 'CUSTOM_DOMAIN';
-
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // Use root path for custom domain, subpath for GitHub Pages
-  base: isCustomDomain ? '/' : '/Omniportal/',
+  base: '/Omniportal/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
