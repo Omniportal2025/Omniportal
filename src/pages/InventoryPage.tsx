@@ -275,16 +275,15 @@ const InventoryPage: React.FC = () => {
       </div>
       <div className="overflow-auto flex-1">
         <table className="w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 bg-[#0A0D50] z-10">
+          <thead className="sticky top-0 bg-[#0A0D50] z-30">
             <tr>
-              <th className="sticky left-0 bg-[#0A0D50] px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[80px]">Block</th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[80px]">Lot</th>
+              <th className="sticky left-0 bg-[#0A0D50] z-20 px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[80px]">Block</th>
+              <th className="sticky left-[80px] bg-[#0A0D50] z-20 px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[80px]">Lot</th>
               <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[150px]">Owner</th>
               <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[100px]">Due Date 15/30</th>
               <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">First Due Month</th>
               <th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Amount</th>
               <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[150px]">Realty</th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Date of Reservation</th>
               <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[150px]">Seller Name</th>
               <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[150px]">Broker / Realty</th>
               <th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Reservation</th>
@@ -304,8 +303,8 @@ const InventoryPage: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {data.map((property) => (
               <tr key={property.id} className="hover:bg-gray-50">
-                <td className="sticky left-0 bg-white px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property.Block}</td>
-                <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property.Lot}</td>
+                <td className="sticky left-0 bg-white z-10 px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property.Block}</td>
+                <td className="sticky left-[80px] bg-white z-10 px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property.Lot}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property.Owner}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property["Due Date 15/30"]}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property["First Due Month"]}</td>
@@ -372,10 +371,10 @@ const InventoryPage: React.FC = () => {
       </div>
       <div className="overflow-auto flex-1">
         <table className="w-full divide-y divide-gray-200">
-          <thead className="sticky top-0 bg-[#0A0D50] z-10">
+          <thead className="sticky top-0 bg-[#0A0D50] z-30">
             <tr>
-              <th className="sticky left-0 bg-[#0A0D50] px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[80px]">Block</th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[80px]">Lot</th>
+              <th className="sticky left-0 bg-[#0A0D50] z-20 px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[80px]">Block</th>
+              <th className="sticky left-[80px] bg-[#0A0D50] z-20 px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[80px]">Lot</th>
               <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[150px]">Buyers Name</th>
               <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[100px]">Due</th>
               <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Date of Reservation</th>
@@ -410,8 +409,8 @@ const InventoryPage: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {data.map((property) => (
               <tr key={property.id} className="hover:bg-gray-50">
-                <td className="sticky left-0 bg-white px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property.Block}</td>
-                <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property.Lot}</td>
+                <td className="sticky left-0 bg-white z-10 px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property.Block}</td>
+                <td className="sticky left-[80px] bg-white z-10 px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property.Lot}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property['Buyers Name']}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property.Due}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{formatDate(property['Date of Reservation'])}</td>
