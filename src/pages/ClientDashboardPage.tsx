@@ -1329,73 +1329,53 @@ const ViewPaymentModal: React.FC<ViewPaymentModalProps> = ({ isOpen, onClose, pa
                   ) : payments.length > 0 ? (
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Block & Lot</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Penalty Amount</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month of Payment</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AR Receipt</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {payments.map((payment, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {new Date(payment["Date of Payment"]).toLocaleDateString()}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {payment["Block & Lot"]}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                ₱{payment["Payment Amount"].toLocaleString()}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                ₱{payment["Penalty Amount"]?.toLocaleString() || 'N/A'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {new Date(payment["Month of Payment"]).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                  ${payment.Status === "Approved" ? "bg-green-100 text-green-800" : 
-                                    payment.Status === "Rejected" ? "bg-red-100 text-red-800" : 
-                                    payment.Status === "Pending" ? "bg-yellow-100 text-yellow-800" : 
-                                    payment.Status === "closed" ? "bg-gray-100 text-gray-800" : 
-                                    "bg-gray-100 text-gray-800"}`}
-                                >
-                                  {payment.Status}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                {payment.receipt_path && (
-                                  <button 
-                                    onClick={() => handleViewReceipt(payment)}
-                                    className="text-blue-600 hover:text-blue-800 focus:outline-none flex items-center"
-                                  >
-                                    <EyeIcon className="h-4 w-4 mr-1" />
-                                    View Receipt
-                                  </button>
-                                )}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                {payment.ar_receipt_path && (
-                                  <button 
-                                    onClick={() => handleViewReceipt(payment, true)}
-                                    className="text-green-600 hover:text-green-800 focus:outline-none flex items-center"
-                                  >
-                                    <EyeIcon className="h-4 w-4 mr-1" />
-                                    View AR
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+  <thead className="bg-gray-50">
+    <tr>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt</th>
+      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AR Receipt</th>
+    </tr>
+  </thead>
+  <tbody className="bg-white divide-y divide-gray-200">
+    {payments.map((payment, index) => (
+      <tr key={index} className="hover:bg-gray-50">
+        <td className="px-6 py-4 whitespace-nowrap">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+            ${payment.Status === "Approved" ? "bg-green-100 text-green-800" : 
+              payment.Status === "Rejected" ? "bg-red-100 text-red-800" : 
+              payment.Status === "Pending" ? "bg-yellow-100 text-yellow-800" : 
+              payment.Status === "closed" ? "bg-gray-100 text-gray-800" : 
+              "bg-gray-100 text-gray-800"}`}
+          >
+            {payment.Status}
+          </span>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm">
+          {payment.receipt_path && (
+            <button 
+              onClick={() => handleViewReceipt(payment)}
+              className="text-blue-600 hover:text-blue-800 focus:outline-none flex items-center"
+            >
+              <EyeIcon className="h-4 w-4 mr-1" />
+              View Receipt
+            </button>
+          )}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm">
+          {payment.ar_receipt_path && (
+            <button 
+              onClick={() => handleViewReceipt(payment, true)}
+              className="text-green-600 hover:text-green-800 focus:outline-none flex items-center"
+            >
+              <EyeIcon className="h-4 w-4 mr-1" />
+              View AR
+            </button>
+          )}
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
                     </div>
                   ) : (
                     <p className="text-center text-gray-500 py-4">No payment records found.</p>
