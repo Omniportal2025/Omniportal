@@ -2074,26 +2074,27 @@ const ClientDashboardPage: React.FC = () => {
                       <label htmlFor="lot-selector" className="block mb-2 text-sm font-medium text-blue-100">
                         Select Property
                       </label>
-                      <div className="relative">
-                        <select
-                          id="lot-selector"
-                          value={selectedLot || ''}
-                          onChange={handleLotChange}
-                          className="w-full md:w-72 px-4 py-3 bg-white/10 backdrop-blur text-white text-sm font-medium rounded-lg border border-white/20 shadow-sm 
-                            focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent
-                            appearance-none transition-all duration-200 hover:bg-white/15"
-                        >
-                          {balanceRecords.map((record) => (
-                            <option key={record.id} value={`Block ${record.Block} Lot ${record.Lot}`} 
-                              className="bg-blue-800 text-white">
-                              {record.Project} - Block {record.Block} Lot {record.Lot}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-white/70">
-                          <ChevronDownIcon className="h-5 w-5" />
-                        </div>
-                      </div>
+                      <div className="relative w-full md:w-72">
+  <select
+    id="lot-selector"
+    value={selectedLot || ''}
+    onChange={handleLotChange}
+    className="w-full px-4 py-2 pr-10 border border-gray-200 rounded-xl shadow-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 hover:border-blue-400 hover:shadow-lg appearance-none"
+    style={{ WebkitAppearance: 'none', appearance: 'none', backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat' }}
+  >
+    <option value="" disabled>Select your property...</option>
+    {balanceRecords.map((record) => (
+      <option key={record.id} value={`Block ${record.Block} Lot ${record.Lot}`}>
+        {record.Project} - Block {record.Block} Lot {record.Lot}
+      </option>
+    ))}
+  </select>
+  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+    <svg className="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+    </svg>
+  </span>
+</div>
                     </div>
                   )}
                 </div>

@@ -930,17 +930,27 @@ const InventoryPage: React.FC = () => {
       const clientName = isLivingWaterProperty(propertyToSell) ? propertyToSell.Owner : propertyToSell["Buyers Name"];
       
       if (clientName) {
-        // Save to Clients table - only the name
-        const clientData = {
-          Name: clientName
-        };
-        
-        const { error: clientError } = await supabase
+        // Check if client already exists in Clients table
+        const { data: existingClients, error: checkError } = await supabase
           .from('Clients')
-          .insert(clientData);
+          .select('id')
+          .eq('Name', clientName);
 
-        if (clientError) {
-          console.error('Error saving client:', clientError);
+        if (checkError) {
+          console.error('Error checking for existing client:', checkError);
+        }
+
+        if (!existingClients || existingClients.length === 0) {
+          // Only insert if client does not exist
+          const clientData = { Name: clientName };
+          const { error: clientError } = await supabase
+            .from('Clients')
+            .insert(clientData);
+          if (clientError) {
+            console.error('Error saving client:', clientError);
+          }
+        } else {
+          console.log('Client already exists, skipping insert:', clientName);
         }
         
         // Find the matching entry in Balance table based on Project, Block and Lot
