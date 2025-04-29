@@ -287,6 +287,7 @@ const InventoryPage: React.FC = () => {
               <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[150px]">Seller Name</th>
               <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[150px]">Broker / Realty</th>
               <th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Reservation</th>
+<th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Optional: Advance Payment</th>
               <th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[100px]">Lot Area</th>
               <th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Price per sqm</th>
               <th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">TCP</th>
@@ -314,6 +315,9 @@ const InventoryPage: React.FC = () => {
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property["Seller Name"]}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property["Broker / Realty"]}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property.Reservation)}</td>
+{isLivingWaterProperty(property) && (
+  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property["Optional: Advance Payment"] ?? null)}</td>
+) }
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatNumber(property["Lot Area"])}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property["Price per sqm"])}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property.TCP)}</td>
@@ -392,6 +396,7 @@ const InventoryPage: React.FC = () => {
               <th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">TSP</th>
               <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Mode of Payment</th>
               <th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Reservation</th>
+<th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Optional: Advance Payment</th>
               <th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Comm Price</th>
               <th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Misc Fee</th>
               <th className="px-3 py-3 text-right text-xs font-medium text-white uppercase tracking-wider min-w-[120px]">Vat</th>
@@ -428,6 +433,9 @@ const InventoryPage: React.FC = () => {
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property.TSP)}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap">{property['Mode of Payment']}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property.Reservation)}</td>
+{isLivingWaterProperty(property) && (
+  <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property["Optional: Advance Payment"] ?? null)}</td>
+) }
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property['Comm Price'])}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property['Misc Fee'])}</td>
                 <td className="px-3 py-3 text-sm text-gray-900 whitespace-nowrap text-right">{formatCurrency(property.Vat)}</td>
