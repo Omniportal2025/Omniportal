@@ -448,9 +448,31 @@ const UploadPaymentModal: React.FC<UploadPaymentModalProps> = ({ isOpen, onClose
       // Update loading message
       toast.loading('Saving payment details...', { id: loadingToastId });
 
-      // Skipped saving to Payment and Payment Record tables as per user request
-      // Success (file uploaded only, nothing saved to DB)
-      toast.success('Payment uploaded successfully! (not saved to database)', { id: loadingToastId });
+      // 2. Save to Payment table
+      const { error: dbError } = await supabase
+        .from('Payment')
+        .insert({
+          "receipt_path": data.path,
+          "Block & Lot": selectedBlockLot,
+          "Payment Amount": parseFloat(amount),
+          "Penalty Amount": penalty ? parseFloat(penalty) : null,
+          "Date of Payment": paymentDate,
+          "Month of Payment": paymentMonth + "-01", // Add day to make it a valid date
+          "Due Date": dueDate,
+          "Name": selectedName,
+          "Project": selectedProject,
+          "Status": "Pending",
+          "Reference Number": referenceNumber,
+          "Vat": vat, // Save VAT selection
+          created_at: new Date().toISOString()
+        });
+
+      if (dbError) {
+        throw new Error(`Error saving payment information: ${dbError.message}`);
+      }
+
+      // Success
+      toast.success('Payment uploaded successfully!', { id: loadingToastId });
       onUpload();
       onClose();
     } catch (err: any) {
