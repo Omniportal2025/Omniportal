@@ -74,6 +74,7 @@ const LoginPage = () => {
             'rowelhal.hdc@gmail.com': 'Rowelha',
             'angelap.hdc@gmail.com': 'Angela',
             'guest@gmail.com': 'John Doe',
+            'hdc.ellainegarcia@gmail.com': 'Ellaine',
           };
           if (
             (adminData.Access === true || adminData.Access === 'True' || adminData.Access === 'true') &&
