@@ -388,10 +388,12 @@ const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
     setPreviewError(null);
     setIsProcessing(true);
 
-    // Validate file type (only PNG and JPG)
-    if (!file.type.match(/^image\/(png|jpeg)$/)) {
-      setPreviewError('Only PNG and JPG files are allowed');
+    // Validate file type (only PNG, JPG, and JPEG)
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type.toLowerCase())) {
+      setPreviewError('Only JPG, JPEG, and PNG files are allowed');
       setIsProcessing(false);
+      setFile(null);
       return;
     }
 
@@ -400,26 +402,23 @@ const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
     if (file.size > maxSize) {
       setPreviewError('File size exceeds 10MB limit');
       setIsProcessing(false);
+      setFile(null);
       return;
     }
 
     // Create preview URL for images
-    if (file.type.startsWith('image/')) {
-      try {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          setPreviewUrl(e.target?.result as string);
-          setIsProcessing(false);
-        };
-        reader.readAsDataURL(file);
-      } catch (err) {
-        setPreviewError('Failed to generate preview');
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewUrl(e.target?.result as string);
         setIsProcessing(false);
-        return;
-      }
-    } else {
-      setPreviewUrl(null);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      setPreviewError('Failed to generate preview');
       setIsProcessing(false);
+      setFile(null);
+      return;
     }
 
     setFile(file);
@@ -917,11 +916,11 @@ const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                                               processFile(e.target.files[0]);
                                             }
                                           }}
-                                          accept="image/png,image/jpeg,image/jpg"
+                                          accept="image/jpeg,image/jpg,image/png"
                                         />
                                       </span>
                                     </label>
-                                    <p className="text-xs text-gray-500">PNG or JPG up to 10MB</p>
+                                    <p className="text-xs text-gray-500">Accepted formats: JPG, JPEG, PNG (up to 10MB)</p>
                                   </div>
                                 </div>
                               )}
