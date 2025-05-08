@@ -738,74 +738,91 @@ const ReportPage = (): ReactNode => {
         {isPrintModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
-              <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between bg-gradient-to-r from-[#0A0D50] to-[#141B7A]">
                 <div className="flex items-center space-x-2">
-                  <PrinterIcon className="h-5 w-5 text-[#0A0D50]" />
-                  <h3 className="text-lg font-medium text-gray-900">Print Report</h3>
+                  <PrinterIcon className="h-5 w-5 text-white" />
+                  <h3 className="text-lg font-medium text-white">Print Report</h3>
                 </div>
                 <button
                   onClick={() => setIsPrintModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                  className="text-white/70 hover:text-white/90 focus:outline-none transition-colors duration-200"
                 >
                   <XMarkIcon className="h-5 w-5" />
                 </button>
               </div>
               
-              <div className="px-6 py-4 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Select Project</label>
-                  <select
-                    value={selectedPrintProject}
-                    onChange={(e) => setSelectedPrintProject(e.target.value)}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-[#0A0D50] focus:border-[#0A0D50] rounded-md"
-                  >
-                    <option value="">Choose a project</option>
-                    {projects.filter(p => p !== 'all').map((project) => (
-                      <option key={project} value={project}>{project}</option>
-                    ))}
-                  </select>
+              <div className="px-6 py-6 space-y-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Select Project</label>
+                  <div className="relative">
+                    <select
+                      value={selectedPrintProject}
+                      onChange={(e) => setSelectedPrintProject(e.target.value)}
+                      className="block w-full pl-3 pr-10 py-3 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0A0D50] focus:border-[#0A0D50] rounded-lg shadow-sm transition-all duration-200 hover:border-gray-400"
+                    >
+                      <option value="">Choose a project</option>
+                      {projects.filter(p => p !== 'all').map((project) => (
+                        <option key={project} value={project}>{project}</option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Select Date</label>
-                  <div className="relative">
+                <div className="space-y-2 w-full">
+                  <label className="block text-sm font-medium text-gray-700">Select Date</label>
+                  <div className="relative w-full">
                     <DatePicker
                       selected={selectedPrintDate}
                       onChange={(date) => setSelectedPrintDate(date)}
                       dateFormat="MMMM d, yyyy"
-                      className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-[#0A0D50] focus:border-[#0A0D50] rounded-md"
+                      className="block w-full pl-3 pr-10 py-3 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#0A0D50] focus:border-[#0A0D50] rounded-lg shadow-sm transition-all duration-200 hover:border-gray-400"
                       placeholderText="Select a date"
+                      wrapperClassName="w-full"
                     />
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-                    <span>Monthly Total:</span>
-                    <span className="font-medium text-[#0A0D50]">
+                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 font-medium">Monthly Total:</span>
+                    <span className="text-[#0A0D50] font-semibold">
                       ₱{selectedPrintDate && selectedPrintProject ? getMonthlyTotal(selectedPrintDate, selectedPrintProject).toLocaleString() : '0'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>Daily Total:</span>
-                    <span className="font-medium text-[#0A0D50]">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 font-medium">Daily Total:</span>
+                    <span className="text-[#0A0D50] font-semibold">
                       ₱{selectedPrintDate && selectedPrintProject ? getDailyTotal(selectedPrintDate, selectedPrintProject).toLocaleString() : '0'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+              <div className="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-3 border-t border-gray-200">
                 <button
                   onClick={() => setIsPrintModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A0D50]"
+                  className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A0D50] transition-colors duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handlePrint}
                   disabled={!selectedPrintDate || !selectedPrintProject}
-                  className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A0D50] ${!selectedPrintDate || !selectedPrintProject ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#0A0D50] hover:bg-[#141B7A]'}`}
+                  className={`px-4 py-2.5 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A0D50] transition-all duration-200 ${
+                    !selectedPrintDate || !selectedPrintProject 
+                    ? 'bg-gray-300 cursor-not-allowed opacity-60' 
+                    : 'bg-[#0A0D50] hover:bg-[#141B7A] shadow-sm hover:shadow-md'
+                  }`}
                 >
                   Generate Report
                 </button>
