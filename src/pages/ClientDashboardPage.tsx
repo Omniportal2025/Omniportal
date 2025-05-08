@@ -388,10 +388,12 @@ const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
     setPreviewError(null);
     setIsProcessing(true);
 
-    // Validate file type (only PNG, JPG, and JPEG)
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    if (!allowedTypes.includes(file.type.toLowerCase())) {
-      setPreviewError('Only JPG, JPEG, and PNG files are allowed');
+    // Validate file type (PNG, JPG, JPEG, and HEIC)
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif'];
+    if (!allowedTypes.includes(file.type.toLowerCase()) && 
+        !file.name.toLowerCase().endsWith('.heic') && 
+        !file.name.toLowerCase().endsWith('.heif')) {
+      setPreviewError('Only JPG, JPEG, PNG, and HEIC files are allowed');
       setIsProcessing(false);
       setFile(null);
       return;
@@ -916,11 +918,11 @@ const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
                                               processFile(e.target.files[0]);
                                             }
                                           }}
-                                          accept="image/jpeg,image/jpg,image/png"
+                                          accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,.heic,.heif"
                                         />
                                       </span>
                                     </label>
-                                    <p className="text-xs text-gray-500">Accepted formats: JPG, JPEG, PNG (up to 10MB)</p>
+                                    <p className="text-xs text-gray-500">Accepted formats: JPG, JPEG, PNG, HEIC (up to 10MB)</p>
                                   </div>
                                 </div>
                               )}
